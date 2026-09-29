@@ -371,7 +371,7 @@ function celebrate() {
   hop(); snow();
   const n = daysLeft();
   const lines = n > 0
-    ? [`又劃掉一天！剩 ${n} 天 ✨`, `好棒！再 ${n} 天就到了`, `打叉成功～加油！`]
+    ? [`又劃掉一天！ ✨`, `好棒！`, `打叉成功～加油！`]
     : ["就是今天啦！🎉"];
   say(lines[Math.floor(Math.random() * lines.length)]);
 }
@@ -379,8 +379,8 @@ $("mascot").addEventListener("click", () => {
   hop();
   const n = daysLeft(), todayMarked = !!state.marks[ymd(new Date())];
   const lines = n === 0 ? ["今天就是目標日！🎉"]
-    : todayMarked ? [`今天已經劃掉囉，剩 ${n} 天`, "明天見～", "一天一天慢慢來 ☃"]
-    : ["今天還沒打叉喔！", `還有 ${n} 天，點今天畫個 ✕ 吧`];
+    : todayMarked ? ["今天已經劃掉囉，Fighting！", "明天見～", "一天一天慢慢來 ☃"]
+    : ["今天還沒打叉喔！", "點今天畫個 ✕ 吧"];
   say(lines[Math.floor(Math.random() * lines.length)]);
 });
 setTimeout(() => say(state.marks[ymd(new Date())] ? "今天已經劃掉囉 ☃" : `嗨 ${state.user}！還有 ${daysLeft()} 天`), 600);
