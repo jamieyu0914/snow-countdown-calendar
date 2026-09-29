@@ -35,6 +35,15 @@
   .clock span{font-size:12px;color:var(--muted)}
   .done-msg{font-size:28px;font-weight:700;color:var(--accent)}
 
+  /* 問候 */
+  .hello{display:flex;align-items:center;gap:8px;margin:4px 4px 16px;min-height:44px}
+  .hello h2{margin:0;font-size:30px;font-weight:800;letter-spacing:.01em}
+  .hello h2 .who{color:#5b8fd6}
+  .hello input{width:auto;max-width:200px;font-size:24px;font-weight:700;padding:4px 10px}
+  .icon-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:10px;
+    height:34px;padding:0 10px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap}
+  .icon-btn:hover{color:var(--ink)}
+
   /* 吉祥物 */
   .top{position:relative}
   .top h1,.top .event{padding-right:104px}
@@ -47,6 +56,8 @@
     font-size:13px;padding:8px 11px;border-radius:14px 14px 4px 14px;white-space:nowrap;
     opacity:0;transform:translateY(4px);transition:.3s;pointer-events:none}
   .bubble.show{opacity:1;transform:none}
+  .nametag{display:inline-block;margin-top:2px;padding:2px 12px;border-radius:999px;
+    background:#5b8fd6;color:#fff;font-size:13px;font-weight:700;letter-spacing:.1em}
   @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
   @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) scaleY(1.05)}}
   @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
@@ -71,7 +82,7 @@
   .day.crossed{background:var(--crossed);color:var(--done)}
   .day.crossed small{visibility:hidden}
   .day svg{position:absolute;inset:8%;width:84%;height:84%;pointer-events:none}
-  .day svg polyline{fill:none;stroke:var(--accent);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+  .day svg polyline{fill:none;stroke:#5b8fd6;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
   .day.today{outline:2px solid var(--ink);font-weight:700}
   .day.target{background:var(--accent);color:#fff;font-weight:700}
   .day.target small{color:#fff}
@@ -102,10 +113,14 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="hello" id="hello">
+    <h2 id="helloText">Hi <span class="who" id="who"></span> !</h2>
+    <button class="icon-btn" id="editName" aria-label="編輯名字">✎ 編輯</button>
+  </div>
   <div class="card top">
     <div class="mascot" id="mascot">
       <div class="bubble" id="bubble"></div>
-      <svg viewBox="0 0 100 100" aria-label="吉祥物糰糰">
+      <svg viewBox="0 0 100 100" aria-label="吉祥物">
         <g class="body">
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 手套 -->
@@ -129,6 +144,7 @@
           <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
         </g>
       </svg>
+      <div class="nametag">Snow</div>
     </div>
     <h1>距離</h1>
     <p class="event" id="eventName"></p>
@@ -271,7 +287,7 @@ function sizeCanvas() {
 function redraw() {
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+  ctx.strokeStyle = "#5b8fd6";
   ctx.lineWidth = w * 0.045; ctx.lineCap = "round"; ctx.lineJoin = "round";
   [...strokes, ...(current ? [current] : [])].forEach(s => {
     ctx.beginPath();
@@ -367,7 +383,7 @@ $("mascot").addEventListener("click", () => {
     : ["今天還沒打叉喔！", `還有 ${n} 天，點今天畫個 ✕ 吧`];
   say(lines[Math.floor(Math.random() * lines.length)]);
 });
-setTimeout(() => say(state.marks[ymd(new Date())] ? "今天已經劃掉囉 ☃" : `嗨！還有 ${daysLeft()} 天`), 600);
+setTimeout(() => say(state.marks[ymd(new Date())] ? "今天已經劃掉囉 ☃" : `嗨 ${state.user}！還有 ${daysLeft()} 天`), 600);
 $("btnDone").onclick = finish;
 $("btnCancel").onclick = closePad;
 $("btnClear").onclick = () => {
@@ -390,6 +406,28 @@ window.addEventListener("resize", () => { if ($("modal").classList.contains("ope
     renderCal(); tick();
   });
 });
+
+/* ---------- 問候與名字 ---------- */
+if (!state.user) state.user = "YaTsen";
+function renderName() { $("who").textContent = state.user; document.title = `Hi ${state.user}・倒數月曆`; }
+function editName() {
+  const h = $("hello");
+  h.innerHTML = `<h2>Hi</h2><input id="nameIn" type="text" maxlength="20" aria-label="名字">
+    <button class="icon-btn" id="nameOk">儲存</button><button class="icon-btn" id="nameNo">取消</button>`;
+  const inp = $("nameIn"); inp.value = state.user; inp.focus(); inp.select();
+  const done = ok => {
+    if (ok && inp.value.trim()) { state.user = inp.value.trim(); save(); }
+    h.innerHTML = `<h2 id="helloText">Hi <span class="who" id="who"></span> !</h2>
+      <button class="icon-btn" id="editName" aria-label="編輯名字">✎ 編輯</button>`;
+    $("editName").onclick = editName; renderName();
+    if (ok) { hop(); say(`哈囉 ${state.user}！`); }
+  };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") done(true); if (e.key === "Escape") done(false); });
+  $("nameOk").onclick = () => done(true);
+  $("nameNo").onclick = () => done(false);
+}
+$("editName").onclick = editName;
+renderName();
 
 renderCal(); tick(); setInterval(tick, 1000);
 </script>
