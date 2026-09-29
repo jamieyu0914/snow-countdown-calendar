@@ -10,7 +10,9 @@ This project was made for a dear friend to encourage her and remind her that she
 
 ```
 .
-├── index.html   # The whole app: markup, styles and script
+├── index.html   # Markup
+├── style.css    # Styles
+├── script.js    # Logic
 ├── LICENSE
 └── README.md
 ```
