@@ -34,6 +34,24 @@
   .clock b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
   .clock span{font-size:12px;color:var(--muted)}
   .done-msg{font-size:28px;font-weight:700;color:var(--accent)}
+
+  /* 吉祥物 */
+  .top{position:relative}
+  .top h1,.top .event{padding-right:104px}
+  .mascot{position:absolute;top:10px;right:12px;width:96px;text-align:center}
+  .mascot svg{width:96px;height:96px;cursor:pointer;overflow:visible}
+  .mascot .body{transform-origin:50% 90%;animation:sway 3s ease-in-out infinite}
+  .mascot.happy .body{animation:hop .5s ease-out 3}
+  .mascot .eye{transform-origin:center;transform-box:fill-box;animation:blink 4s infinite}
+  .bubble{position:absolute;right:88px;top:4px;background:var(--accent-soft);color:var(--ink);
+    font-size:13px;padding:8px 11px;border-radius:14px 14px 4px 14px;white-space:nowrap;
+    opacity:0;transform:translateY(4px);transition:.3s;pointer-events:none}
+  .bubble.show{opacity:1;transform:none}
+  @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  @keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) scaleY(1.05)}}
+  @keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+  .snowfx{position:fixed;top:-10px;color:#bcd7ee;pointer-events:none;z-index:20;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(360deg)}}
   .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
   .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
   .barlabel{font-size:12px;color:var(--muted);margin-top:6px}
@@ -84,7 +102,34 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="card">
+  <div class="card top">
+    <div class="mascot" id="mascot">
+      <div class="bubble" id="bubble"></div>
+      <svg viewBox="0 0 100 100" aria-label="吉祥物糰糰">
+        <g class="body">
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 手套 -->
+          <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
+          <circle cx="83" cy="64" r="7" fill="#5b8fd6"/>
+          <!-- 身體 -->
+          <circle cx="50" cy="60" r="33" fill="#fdfdfd" stroke="#dfe7ef" stroke-width="2"/>
+          <!-- 毛線帽 -->
+          <path d="M22 44 Q50 2 78 44 Z" fill="#e0605a"/>
+          <rect x="20" y="40" width="60" height="9" rx="4.5" fill="#f3f0ea"/>
+          <circle cx="50" cy="12" r="7" fill="#f3f0ea"/>
+          <path d="M34 30 L38 40 M50 24 L50 40 M66 30 L62 40" stroke="#c94b46" stroke-width="2" stroke-linecap="round"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="40" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <path d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- 圍巾 -->
+          <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
+          <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
+        </g>
+      </svg>
+    </div>
     <h1>距離</h1>
     <p class="event" id="eventName"></p>
     <div id="countWrap">
@@ -276,8 +321,53 @@ function finish() {
   clearTimeout(autoTimer);
   if (strokes.length) state.marks[padKey] = strokes.map(s => s.map(p => [+p[0].toFixed(3), +p[1].toFixed(3)]));
   else delete state.marks[padKey];
+  const added = strokes.length > 0;
   save(); renderCal(); tick(); closePad();
+  if (added) celebrate();
 }
+
+/* ---------- 吉祥物 ---------- */
+let bubbleTimer = null;
+function say(text, ms = 3500) {
+  const b = $("bubble");
+  b.textContent = text; b.classList.add("show");
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => b.classList.remove("show"), ms);
+}
+function daysLeft() { return Math.max(0, Math.ceil((dayStart(target()) - dayStart(new Date())) / 86400000)); }
+function hop() {
+  const m = $("mascot");
+  m.classList.remove("happy"); void m.offsetWidth; m.classList.add("happy");
+}
+function snow(n = 18) {
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement("div");
+    s.className = "snowfx"; s.textContent = "❄";
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.fontSize = 10 + Math.random() * 14 + "px";
+    s.style.animationDuration = 2 + Math.random() * 2 + "s";
+    s.style.animationDelay = Math.random() * .6 + "s";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 5000);
+  }
+}
+function celebrate() {
+  hop(); snow();
+  const n = daysLeft();
+  const lines = n > 0
+    ? [`又劃掉一天！剩 ${n} 天 ✨`, `好棒！再 ${n} 天就到了`, `打叉成功～加油！`]
+    : ["就是今天啦！🎉"];
+  say(lines[Math.floor(Math.random() * lines.length)]);
+}
+$("mascot").addEventListener("click", () => {
+  hop();
+  const n = daysLeft(), todayMarked = !!state.marks[ymd(new Date())];
+  const lines = n === 0 ? ["今天就是目標日！🎉"]
+    : todayMarked ? [`今天已經劃掉囉，剩 ${n} 天`, "明天見～", "一天一天慢慢來 ☃"]
+    : ["今天還沒打叉喔！", `還有 ${n} 天，點今天畫個 ✕ 吧`];
+  say(lines[Math.floor(Math.random() * lines.length)]);
+});
+setTimeout(() => say(state.marks[ymd(new Date())] ? "今天已經劃掉囉 ☃" : `嗨！還有 ${daysLeft()} 天`), 600);
 $("btnDone").onclick = finish;
 $("btnCancel").onclick = closePad;
 $("btnClear").onclick = () => {
