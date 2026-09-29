@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>倒數月曆</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="hello" id="hello">
+    <h2 id="helloText">Hi <span class="who" id="who"></span> !</h2>
+    <button class="icon-btn" id="editName" aria-label="編輯名字">✎ 編輯</button>
+  </div>
+  <div class="card top">
+    <div class="mascot" id="mascot">
+      <div class="bubble" id="bubble"></div>
+      <svg viewBox="0 0 100 100" aria-label="吉祥物">
+        <g class="body">
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 手套 -->
+          <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
+          <circle cx="83" cy="64" r="7" fill="#5b8fd6"/>
+          <!-- 身體 -->
+          <circle cx="50" cy="60" r="33" fill="#fdfdfd" stroke="#dfe7ef" stroke-width="2"/>
+          <!-- 毛線帽 -->
+          <path d="M22 44 Q50 2 78 44 Z" fill="#e0605a"/>
+          <rect x="20" y="40" width="60" height="9" rx="4.5" fill="#f3f0ea"/>
+          <circle cx="50" cy="12" r="7" fill="#f3f0ea"/>
+          <path d="M34 30 L38 40 M50 24 L50 40 M66 30 L62 40" stroke="#c94b46" stroke-width="2" stroke-linecap="round"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="40" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <path d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- 圍巾 -->
+          <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
+          <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
+        </g>
+      </svg>
+      <div class="nametag">Snow</div>
+    </div>
+    <h1>距離</h1>
+    <p class="event" id="eventName"></p>
+    <div id="countWrap">
+      <div class="big"><span class="num" id="days">0</span><span class="unit">天</span></div>
+      <div class="clock">
+        <div><b id="hrs">00</b><span>時</span></div>
+        <div><b id="mins">00</b><span>分</span></div>
+        <div><b id="secs">00</b><span>秒</span></div>
+      </div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="barlabel" id="barLabel"></div>
+  </div>
+
+  <div class="card">
+    <div class="cal-head">
+      <button id="prev" aria-label="上個月">‹</button>
+      <h2 id="monthTitle"></h2>
+      <button id="next" aria-label="下個月">›</button>
+    </div>
+    <p class="hint">點一下今天（或之前的日子），畫個 ✕ 就能劃掉</p>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span style="--c:var(--crossed)">已過（已打叉）</span>
+      <span style="--c:var(--range)">倒數中</span>
+      <span style="--c:var(--accent)">目標日</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>設定</h1>
+    <label for="inName">事件名稱</label>
+    <input id="inName" type="text">
+    <div class="row">
+      <div><label for="inStart">開始日期</label><input id="inStart" type="date"></div>
+      <div><label for="inDate">目標日期</label><input id="inDate" type="date"></div>
+    </div>
+    <label for="inTime">目標時間</label>
+    <input id="inTime" type="time">
+  </div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <h3 id="padTitle"></h3>
+    <p>用滑鼠或手指畫一個 ✕</p>
+    <div class="pad">
+      <div class="bgnum" id="padNum"></div>
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="btns">
+      <button id="btnCancel">取消</button>
+      <button id="btnClear">清除</button>
+      <button id="btnDone" class="primary">完成</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
