@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>倒數月曆</title>
+<style>
+  :root{
+    --bg:#f6f3ee; --card:#ffffff; --ink:#2b2a28; --muted:#8a857c;
+    --accent:#d9534f; --accent-soft:#fbe4e2; --line:#e7e1d8; --done:#c9c3b9;
+    --range:#fff4d6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1c1b1a; --card:#262523; --ink:#eeeae4; --muted:#9c968c;
+      --accent:#ff7a70; --accent-soft:#4a2a28; --line:#3a3835; --done:#5d5953;
+      --range:#3b3422;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+    display:flex;justify-content:center;padding:24px 16px}
+  .wrap{width:100%;max-width:520px}
+  .card{background:var(--card);border-radius:18px;padding:20px;
+    box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:16px}
+  h1{font-size:15px;font-weight:600;color:var(--muted);margin:0 0 4px;letter-spacing:.05em}
+  .event{font-size:24px;font-weight:700;margin:0 0 16px}
+  .big{display:flex;align-items:baseline;gap:8px;margin-bottom:12px}
+  .big .num{font-size:72px;font-weight:800;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+  .big .unit{font-size:20px;color:var(--muted)}
+  .clock{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .clock div{background:var(--accent-soft);border-radius:12px;padding:10px;text-align:center}
+  .clock b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+  .clock span{font-size:12px;color:var(--muted)}
+  .done-msg{font-size:28px;font-weight:700;color:var(--accent)}
+  .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
+  .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s}
+  .barlabel{font-size:12px;color:var(--muted);margin-top:6px}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .cal-head h2{margin:0;font-size:18px}
+  .cal-head button{background:none;border:1px solid var(--line);color:var(--ink);
+    width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+  .dow{font-size:12px;color:var(--muted);padding:4px 0}
+  .day{position:relative;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;border-radius:10px;font-size:15px}
+  .day small{font-size:9px;color:var(--muted);line-height:1}
+  .day.range{background:var(--range)}
+  .day.past{color:var(--done)}
+  .day.past::after{content:"";position:absolute;width:60%;height:2px;background:var(--done);transform:rotate(-35deg)}
+  .day.today{outline:2px solid var(--ink);font-weight:700}
+  .day.target{background:var(--accent);color:#fff;font-weight:700}
+  .day.target small{color:#fff}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:12px}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;
+    background:var(--bg);color:var(--ink);font-size:15px;font-family:inherit}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>距離</h1>
+    <p class="event" id="eventName"></p>
+    <div id="countWrap">
+      <div class="big"><span class="num" id="days">0</span><span class="unit">天</span></div>
+      <div class="clock">
+        <div><b id="hrs">00</b><span>時</span></div>
+        <div><b id="mins">00</b><span>分</span></div>
+        <div><b id="secs">00</b><span>秒</span></div>
+      </div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="barlabel" id="barLabel"></div>
+  </div>
+
+  <div class="card">
+    <div class="cal-head">
+      <button id="prev" aria-label="上個月">‹</button>
+      <h2 id="monthTitle"></h2>
+      <button id="next" aria-label="下個月">›</button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span style="--c:var(--done)">已過</span>
+      <span style="--c:var(--range)">倒數中</span>
+      <span style="--c:var(--accent)">目標日</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>設定</h1>
+    <label for="inName">事件名稱</label>
+    <input id="inName" type="text">
+    <div class="row">
+      <div><label for="inStart">開始日期</label><input id="inStart" type="date"></div>
+      <div><label for="inDate">目標日期</label><input id="inDate" type="date"></div>
+    </div>
+    <label for="inTime">目標時間</label>
+    <input id="inTime" type="time">
+  </div>
+</div>
+
+<script>
+const KEY = "countdown-calendar-v1";
+const pad = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dayStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+let state = { name: "2027 新年", start: ymd(new Date()), date: "2027-01-01", time: "00:00" };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.date) state = { ...state, ...s }; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+const $ = id => document.getElementById(id);
+const target = () => new Date(`${state.date}T${state.time || "00:00"}`);
+let view = new Date();
+
+function tick() {
+  const now = new Date(), t = target();
+  $("eventName").textContent = state.name || "目標日";
+  let diff = t - now;
+  if (diff <= 0) {
+    $("countWrap").innerHTML = '<div class="done-msg">🎉 時間到了！</div>';
+    $("barFill").style.width = "100%";
+    $("barLabel").textContent = "倒數完成";
+    return;
+  }
+  if (!$("days")) location.reload();
+  const s = Math.floor(diff / 1000);
+  $("days").textContent = Math.floor(s / 86400);
+  $("hrs").textContent = pad(Math.floor(s % 86400 / 3600));
+  $("mins").textContent = pad(Math.floor(s % 3600 / 60));
+  $("secs").textContent = pad(s % 60);
+  const start = new Date(`${state.start}T00:00`);
+  const total = t - start;
+  const pct = total > 0 ? Math.min(100, Math.max(0, (now - start) / total * 100)) : 0;
+  $("barFill").style.width = pct.toFixed(1) + "%";
+  $("barLabel").textContent = `已經過 ${pct.toFixed(1)}%`;
+}
+
+function renderCal() {
+  const y = view.getFullYear(), m = view.getMonth();
+  $("monthTitle").textContent = `${y} 年 ${m + 1} 月`;
+  const g = $("grid"); g.innerHTML = "";
+  "日一二三四五六".split("").forEach(d => g.insertAdjacentHTML("beforeend", `<div class="dow">${d}</div>`));
+  const first = new Date(y, m, 1).getDay(), count = new Date(y, m + 1, 0).getDate();
+  for (let i = 0; i < first; i++) g.insertAdjacentHTML("beforeend", "<div></div>");
+  const today = dayStart(new Date()), tgt = dayStart(target()), st = dayStart(new Date(`${state.start}T00:00`));
+  for (let d = 1; d <= count; d++) {
+    const cur = new Date(y, m, d), cls = ["day"];
+    let note = "";
+    if (cur.getTime() === tgt.getTime()) { cls.push("target"); note = "🎯"; }
+    else if (cur >= st && cur < tgt) {
+      cls.push("range");
+      if (cur < today) cls.push("past");
+      else note = `剩${Math.round((tgt - cur) / 86400000)}`;
+    }
+    if (cur.getTime() === today.getTime()) cls.push("today");
+    g.insertAdjacentHTML("beforeend", `<div class="${cls.join(" ")}">${d}${note ? `<small>${note}</small>` : ""}</div>`);
+  }
+}
+
+$("prev").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); renderCal(); };
+$("next").onclick = () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); renderCal(); };
+
+[["inName","name"],["inStart","start"],["inDate","date"],["inTime","time"]].forEach(([id, k]) => {
+  $(id).value = state[k];
+  $(id).addEventListener("input", e => {
+    if ((k === "date" || k === "start") && !e.target.value) return;
+    state[k] = e.target.value; save();
+    if (k === "date") view = target();
+    renderCal(); tick();
+  });
+});
+
+renderCal(); tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
