@@ -222,4 +222,151 @@ function editName() {
 $("editName").onclick = editName;
 renderName();
 
+/* ---------- 吉祥物切換 ---------- */
+const MASCOTS = {
+  snow: { name: "Snow", color: "#5b8fd6", art: `
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 手套 -->
+          <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
+          <circle cx="83" cy="64" r="7" fill="#5b8fd6"/>
+          <!-- 身體 -->
+          <circle cx="50" cy="60" r="33" fill="#fdfdfd" stroke="#dfe7ef" stroke-width="2"/>
+          <!-- 毛線帽 -->
+          <path d="M22 44 Q50 2 78 44 Z" fill="#e0605a"/>
+          <rect x="20" y="40" width="60" height="9" rx="4.5" fill="#f3f0ea"/>
+          <circle cx="50" cy="12" r="7" fill="#f3f0ea"/>
+          <path d="M34 30 L38 40 M50 24 L50 40 M66 30 L62 40" stroke="#c94b46" stroke-width="2" stroke-linecap="round"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="40" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <path d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- 圍巾 -->
+          <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
+          <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
+        ` },
+  pip: { name: "Bean", color: "#7cae5a", art: `
+          <ellipse cx="50" cy="95" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 腳 -->
+          <path d="M38 88 L32 95 L44 95 Z" fill="#f08a3c"/>
+          <path d="M58 88 L52 95 L64 95 Z" fill="#f08a3c"/>
+          <!-- 身體 + 吊帶褲 -->
+          <ellipse cx="50" cy="72" rx="24" ry="19" fill="#fdfdfd" stroke="#dfe3e8" stroke-width="1.5"/>
+          <path d="M28 74 Q50 98 72 74 L72 72 Q50 80 28 72 Z" fill="#7cae5a"/>
+          <rect x="40" y="70" width="20" height="14" rx="3" fill="#7cae5a"/>
+          <path d="M41 70 L36 58 M59 70 L64 58" stroke="#7cae5a" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="50" cy="77" r="2" fill="#f3f0ea"/>
+          <!-- 小翅膀 -->
+          <ellipse cx="27" cy="70" rx="6" ry="9" fill="#eef1f4" transform="rotate(20 27 70)"/>
+          <!-- 澆水壺 -->
+          <g transform="translate(66 62)">
+            <rect x="0" y="4" width="18" height="16" rx="4" fill="#5bb5c9"/>
+            <path d="M18 8 L28 0" stroke="#5bb5c9" stroke-width="4" stroke-linecap="round"/>
+            <ellipse cx="29" cy="-1" rx="3" ry="2" fill="#4a9bb0"/>
+            <path d="M3 4 Q9 -6 15 4" stroke="#4a9bb0" stroke-width="2.5" fill="none"/>
+            <circle cx="33" cy="4" r="1.3" fill="#8fd3e6"/>
+            <circle cx="35" cy="9" r="1.3" fill="#8fd3e6"/>
+          </g>
+          <ellipse cx="68" cy="72" rx="5" ry="7" fill="#eef1f4"/>
+          <!-- 頭 -->
+          <circle cx="48" cy="40" r="20" fill="#fdfdfd" stroke="#dfe3e8" stroke-width="1.5"/>
+          <ellipse class="eye" cx="41" cy="40" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="55" cy="40" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <circle cx="36" cy="47" r="3.5" fill="#f7a39a" opacity=".7"/>
+          <circle cx="60" cy="47" r="3.5" fill="#f7a39a" opacity=".7"/>
+          <ellipse cx="48" cy="48" rx="7" ry="3.5" fill="#f08a3c"/>
+          <path d="M42 48 Q48 51 54 48" stroke="#c96a26" stroke-width="1.2" fill="none"/>
+          <!-- 棒球帽 -->
+          <path d="M30 32 Q30 12 48 12 Q66 12 66 32 Z" fill="#3f78c8"/>
+          <path d="M48 12 L48 32 M38 15 Q36 24 37 32 M58 15 Q60 24 59 32" stroke="#2f5f9e" stroke-width="1.2" fill="none"/>
+          <circle cx="48" cy="12.5" r="2.2" fill="#2f5f9e"/>
+          <path d="M60 30 Q76 28 80 33 Q70 36 58 34 Z" fill="#2f5f9e"/>
+          <circle cx="45" cy="23" r="3.5" fill="#fff"/>
+          <path d="M43.5 23 L46.5 23 M45 21.5 L45 24.5" stroke="#3f78c8" stroke-width="1.2"/>
+        ` },
+  bobo: { name: "Teddy", color: "#2f7a5f", art: `
+          <ellipse cx="50" cy="95" rx="24" ry="4" fill="#000" opacity=".08"/>
+          <!-- 腳 -->
+          <rect x="37" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
+          <rect x="53" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
+          <!-- 手 -->
+          <circle cx="24" cy="70" r="6.5" fill="#a5714a"/>
+          <circle cx="76" cy="70" r="6.5" fill="#a5714a"/>
+          <!-- 制服 -->
+          <rect x="28" y="56" width="44" height="32" rx="14" fill="#2f7a5f"/>
+          <path d="M30 58 L70 86 M70 58 L30 86" stroke="#f3f0ea" stroke-width="4" stroke-linecap="round"/>
+          <!-- 小鼓 -->
+          <rect x="38" y="70" width="24" height="13" rx="3" fill="#f3f0ea" stroke="#c9a24a" stroke-width="2"/>
+          <path d="M38 73 L62 73 M38 80 L62 80" stroke="#c9a24a" stroke-width="2"/>
+          <path d="M42 73 L48 80 L54 73 L60 80" stroke="#2f7a5f" stroke-width="1.5" fill="none"/>
+          <!-- 耳朵 -->
+          <circle cx="30" cy="22" r="8" fill="#a5714a"/>
+          <circle cx="70" cy="22" r="8" fill="#a5714a"/>
+          <circle cx="30" cy="22" r="4" fill="#d9a77c"/>
+          <circle cx="70" cy="22" r="4" fill="#d9a77c"/>
+          <!-- 頭 -->
+          <circle cx="50" cy="40" r="23" fill="#a5714a"/>
+          <ellipse cx="50" cy="48" rx="10" ry="7.5" fill="#e8c7a3"/>
+          <ellipse cx="50" cy="45" rx="3.2" ry="2.4" fill="#3b2a20"/>
+          <path d="M47 50 Q50 53 53 50" stroke="#3b2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <ellipse class="eye" cx="41" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="59" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <circle cx="34" cy="47" r="3.5" fill="#f7a39a" opacity=".6"/>
+          <circle cx="66" cy="47" r="3.5" fill="#f7a39a" opacity=".6"/>
+          <!-- 大盤帽 -->
+          <ellipse cx="50" cy="22" rx="22" ry="7" fill="#2f7a5f"/>
+          <rect x="34" y="21" width="32" height="7" rx="2" fill="#f3f0ea"/>
+          <path d="M34 28 Q50 34 66 28 L66 30 Q50 37 34 30 Z" fill="#1f4f3e"/>
+          <path d="M50 14 l1.8 3.7 4 .6 -2.9 2.8 .7 4 -3.6-1.9 -3.6 1.9 .7-4 -2.9-2.8 4-.6 Z" fill="#e8b93c"/>
+        ` },
+  momo: { name: "Coffee", color: "#d4935a", art: `
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 尾巴 -->
+          <path d="M78 78 Q96 70 90 52" stroke="#e2a768" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <!-- 耳朵 -->
+          <path d="M22 40 L26 14 L44 30 Z" fill="#e2a768"/>
+          <path d="M78 40 L74 14 L56 30 Z" fill="#e2a768"/>
+          <path d="M27 34 L29 21 L38 30 Z" fill="#f7c9c4"/>
+          <path d="M73 34 L71 21 L62 30 Z" fill="#f7c9c4"/>
+          <!-- 身體 -->
+          <ellipse cx="50" cy="60" rx="34" ry="32" fill="#e2a768"/>
+          <ellipse cx="50" cy="72" rx="20" ry="16" fill="#fffaf3"/>
+          <!-- 條紋 -->
+          <path d="M38 32 L41 39 M62 32 L59 39" stroke="#c98a52" stroke-width="3" stroke-linecap="round"/>
+          <!-- 白色額頭與嘴邊 -->
+          <path d="M44 30 Q50 26 56 30 L54 50 Q50 52 46 50 Z" fill="#fffaf3"/>
+          <ellipse cx="50" cy="64" rx="14" ry="10" fill="#fffaf3"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="38" cy="54" rx="3.4" ry="4.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="62" cy="54" rx="3.4" ry="4.4" fill="#2b2a28"/>
+          <circle cx="30" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
+          <circle cx="70" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
+          <path d="M47 60 L53 60 L50 63 Z" fill="#e0605a"/>
+          <path d="M44 65 Q47 68 50 65 Q53 68 56 65" stroke="#2b2a28" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M20 58 L32 60 M20 64 L32 63 M80 58 L68 60 M80 64 L68 63" stroke="#8a5a2b" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- 小葉子 -->
+          <path d="M50 26 Q56 14 66 16 Q60 26 50 26 Z" fill="#6cbf6a"/>
+          <!-- 手 -->
+          <circle cx="24" cy="80" r="7" fill="#fffaf3" stroke="#e2a768" stroke-width="2"/>
+          <circle cx="76" cy="80" r="7" fill="#fffaf3" stroke="#e2a768" stroke-width="2"/>
+        ` }
+};
+if (!MASCOTS[state.mascot]) state.mascot = "snow";
+function renderMascot() {
+  const m = MASCOTS[state.mascot];
+  $("mascotArt").innerHTML = `<g class="body">${m.art}</g>`;
+  $("mascotArt").setAttribute("aria-label", `吉祥物 ${m.name}`);
+  const tag = $("mascotName"); tag.textContent = m.name; tag.style.background = m.color;
+  $("picker").innerHTML = Object.entries(MASCOTS).map(([k, v]) =>
+    `<button data-k="${k}" class="${k === state.mascot ? "on" : ""}" aria-pressed="${k === state.mascot}">
+      <svg viewBox="0 0 100 100">${v.art}</svg>${v.name}</button>`).join("");
+}
+$("picker").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || b.dataset.k === state.mascot) return;
+  state.mascot = b.dataset.k; save(); renderMascot(); hop();
+  say(`嗨 ${state.user}，我是 ${MASCOTS[state.mascot].name}！`);
+});
+renderMascot();
+
 renderCal(); tick(); setInterval(tick, 1000);

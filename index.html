@@ -15,31 +15,8 @@
   <div class="card top">
     <div class="mascot" id="mascot">
       <div class="bubble" id="bubble"></div>
-      <svg viewBox="0 0 100 100" aria-label="吉祥物">
-        <g class="body">
-          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
-          <!-- 手套 -->
-          <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
-          <circle cx="83" cy="64" r="7" fill="#5b8fd6"/>
-          <!-- 身體 -->
-          <circle cx="50" cy="60" r="33" fill="#fdfdfd" stroke="#dfe7ef" stroke-width="2"/>
-          <!-- 毛線帽 -->
-          <path d="M22 44 Q50 2 78 44 Z" fill="#e0605a"/>
-          <rect x="20" y="40" width="60" height="9" rx="4.5" fill="#f3f0ea"/>
-          <circle cx="50" cy="12" r="7" fill="#f3f0ea"/>
-          <path d="M34 30 L38 40 M50 24 L50 40 M66 30 L62 40" stroke="#c94b46" stroke-width="2" stroke-linecap="round"/>
-          <!-- 臉 -->
-          <ellipse class="eye" cx="40" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
-          <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
-          <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
-          <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
-          <path d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-          <!-- 圍巾 -->
-          <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
-          <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
-        </g>
-      </svg>
-      <div class="nametag">Snow</div>
+      <svg viewBox="0 0 100 100" id="mascotArt" aria-label="吉祥物"></svg>
+      <div class="nametag" id="mascotName"></div>
     </div>
     <h1>距離</h1>
     <p class="event" id="eventName"></p>
@@ -80,6 +57,8 @@
     </div>
     <label for="inTime">目標時間</label>
     <input id="inTime" type="time">
+    <label>選擇吉祥物</label>
+    <div class="picker" id="picker"></div>
   </div>
 </div>
 
