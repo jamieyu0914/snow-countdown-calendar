@@ -8,9 +8,16 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="hello" id="hello">
-    <h2 id="helloText">Hi <span class="who" id="who"></span> !</h2>
-    <button class="icon-btn" id="editName" aria-label="編輯名字">✎ 編輯</button>
+  <div class="hello-row">
+    <div class="hello" id="hello">
+      <h2 id="helloText">Hi <span class="who" id="who"></span> !</h2>
+      <button class="icon-btn" id="editName" aria-label="編輯名字">✎ 編輯</button>
+    </div>
+    <div class="theme-seg" id="themeSeg" role="group" aria-label="顯示模式">
+      <button data-t="auto" title="跟隨系統" aria-label="跟隨系統">🖥️</button>
+      <button data-t="dark" title="深色模式" aria-label="深色模式">🌚</button>
+      <button data-t="light" title="淺色模式" aria-label="淺色模式">🌝</button>
+    </div>
   </div>
   <div class="card top">
     <div class="mascot" id="mascot">
@@ -30,6 +37,7 @@
     </div>
     <div class="bar"><i id="barFill"></i></div>
     <div class="barlabel" id="barLabel"></div>
+    <button class="share-btn" id="shareBtn">分享圖卡 🎟️</button>
   </div>
 
   <div class="card">
@@ -61,6 +69,19 @@
     <div class="picker" id="picker"></div>
     <label>衣櫃 <span id="wardInfo" class="ward-info"></span></label>
     <div class="wardrobe" id="wardrobe"></div>
+  </div>
+</div>
+
+<div class="modal" id="shareModal">
+  <div class="sheet share-sheet">
+    <h3>分享圖卡</h3>
+    <p id="shareHint">每按一次「換一張」，吉祥物的動作和表情都不一樣</p>
+    <div class="share-preview"><img id="shareImg" alt="倒數分享圖卡"></div>
+    <div class="btns">
+      <button id="shareClose">關閉</button>
+      <button id="shareAgain">🎲 換一張</button>
+      <button id="shareSave" class="primary">⬇ 存下來</button>
+    </div>
   </div>
 </div>
 

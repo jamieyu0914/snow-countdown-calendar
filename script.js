@@ -298,7 +298,7 @@ renderName();
 
 /* ---------- 吉祥物切換 ---------- */
 const MASCOTS = {
-  snow: { name: "Snow", anchor: { eyes: [40,60,60,60], neck: [50,84,50], flower: [74,40], badge: [37,89], top: [36,25,-22], hand: [17,64] }, fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
+  snow: { name: "Snow", anchor: { mouth: [50,70], eyes: [40,60,60,60], neck: [50,84,50], flower: [74,40], badge: [37,89], top: [36,25,-22], hand: [17,64] }, fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 手套 -->
           <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
@@ -315,12 +315,12 @@ const MASCOTS = {
           <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
           <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
           <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
-          <path d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path class="mouth" d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
           <!-- 圍巾 -->
           <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
           <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
         ` },
-  pip: { name: "Bean", anchor: { eyes: [41,40,55,40], neck: [48,59,34], flower: [30,22], badge: [56,75], top: [44,10,-8], hand: [27,70] }, fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
+  pip: { name: "Bean", anchor: { mouth: null, eyes: [41,40,55,40], neck: [48,59,34], flower: [30,22], badge: [56,75], top: [44,10,-8], hand: [27,70] }, fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
           <ellipse cx="50" cy="95" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <path d="M38 88 L32 95 L44 95 Z" fill="#f08a3c"/>
@@ -357,7 +357,7 @@ const MASCOTS = {
           <circle cx="45" cy="23" r="3.5" fill="#fff"/>
           <path d="M43.5 23 L46.5 23 M45 21.5 L45 24.5" stroke="#3f78c8" stroke-width="1.2"/>
         ` },
-  bobo: { name: "Teddy", anchor: { eyes: [41,39,59,39], neck: [50,59,34], flower: [28,24], badge: [66,69], top: [54,12,8], hand: [24,70] }, fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
+  bobo: { name: "Teddy", anchor: { mouth: [50,51], eyes: [41,39,59,39], neck: [50,59,34], flower: [28,24], badge: [66,69], top: [54,12,8], hand: [24,70] }, fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
           <ellipse cx="50" cy="95" rx="24" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <rect x="37" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
@@ -381,7 +381,7 @@ const MASCOTS = {
           <circle cx="50" cy="40" r="23" fill="#a5714a"/>
           <ellipse cx="50" cy="48" rx="10" ry="7.5" fill="#e8c7a3"/>
           <ellipse cx="50" cy="45" rx="3.2" ry="2.4" fill="#3b2a20"/>
-          <path d="M47 50 Q50 53 53 50" stroke="#3b2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <path class="mouth" d="M47 50 Q50 53 53 50" stroke="#3b2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>
           <ellipse class="eye" cx="41" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
           <ellipse class="eye" cx="59" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
           <circle cx="34" cy="47" r="3.5" fill="#f7a39a" opacity=".6"/>
@@ -392,7 +392,7 @@ const MASCOTS = {
           <path d="M34 28 Q50 34 66 28 L66 30 Q50 37 34 30 Z" fill="#1f4f3e"/>
           <path d="M50 14 l1.8 3.7 4 .6 -2.9 2.8 .7 4 -3.6-1.9 -3.6 1.9 .7-4 -2.9-2.8 4-.6 Z" fill="#e8b93c"/>
         ` },
-  momo: { name: "Coffee", anchor: { eyes: [38,54,62,54], neck: [50,84,44], flower: [30,30], badge: [62,77], top: [42,28,-10], hand: [24,80] }, fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
+  momo: { name: "Coffee", anchor: { mouth: [50,66], eyes: [38,54,62,54], neck: [50,84,44], flower: [30,30], badge: [62,77], top: [42,28,-10], hand: [24,80] }, fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 尾巴 -->
           <path d="M78 78 Q96 70 90 52" stroke="#e2a768" stroke-width="7" fill="none" stroke-linecap="round"/>
@@ -415,7 +415,7 @@ const MASCOTS = {
           <circle cx="30" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
           <circle cx="70" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
           <path d="M47 60 L53 60 L50 63 Z" fill="#e0605a"/>
-          <path d="M44 65 Q47 68 50 65 Q53 68 56 65" stroke="#2b2a28" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path class="mouth" d="M44 65 Q47 68 50 65 Q53 68 56 65" stroke="#2b2a28" stroke-width="2" fill="none" stroke-linecap="round"/>
           <path d="M20 58 L32 60 M20 64 L32 63 M80 58 L68 60 M80 64 L68 63" stroke="#8a5a2b" stroke-width="1.5" stroke-linecap="round"/>
           <!-- 小葉子 -->
           <path d="M50 26 Q56 14 66 16 Q60 26 50 26 Z" fill="#6cbf6a"/>
@@ -487,7 +487,7 @@ $("wardrobe").addEventListener("click", e => {
 });
 function renderMascot() {
   const m = MASCOTS[state.mascot];
-  const acc = ACCESSORIES.filter((a, i) => i < state.unlocked && state.wear[a.id]).map(a => a.draw(m.anchor)).join("");
+  const acc = wornAcc(m);
   $("mascotArt").innerHTML = `<g class="body">${m.art}${acc}</g>`;
   // 長大：劃掉越多天，吉祥物越大一點（最多 +15%）
   $("mascotArt").style.transform = `scale(${1 + Math.min(crossedDays(), 60) / 60 * .15})`;
@@ -504,5 +504,159 @@ $("picker").addEventListener("click", e => {
   say(`嗨 ${state.user}，我是 ${MASCOTS[state.mascot].name}！`);
 });
 renderMascot();
+
+/* ---------- 分享圖卡 ---------- */
+function wornAcc(m) { return ACCESSORIES.filter((a, i) => i < state.unlocked && state.wear[a.id]).map(a => a.draw(m.anchor)).join(""); }
+const EYES = {
+  arc:   (x, y) => `<path d="M${x - 4.5} ${y + 1.5} Q${x} ${y - 4.5} ${x + 4.5} ${y + 1.5}" stroke="#2b2a28" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+  dot:   (x, y) => `<ellipse cx="${x}" cy="${y}" rx="3.2" ry="4" fill="#2b2a28"/><circle cx="${x + 1}" cy="${y - 1.4}" r="1.1" fill="#fff"/>`,
+  big:   (x, y) => `<circle cx="${x}" cy="${y}" r="5" fill="#2b2a28"/><circle cx="${x + 1.6}" cy="${y - 1.8}" r="1.8" fill="#fff"/><circle cx="${x - 1.5}" cy="${y + 1.8}" r=".9" fill="#fff"/>`,
+  star:  (x, y) => `<path transform="translate(${x} ${y}) scale(.62)" d="M0 -10 L2.9 -3.1 L10 -3.1 L4.3 1.4 L6.4 8.6 L0 4.3 L-6.4 8.6 L-4.3 1.4 L-10 -3.1 L-2.9 -3.1 Z" fill="#f5c52f" stroke="#d9a520" stroke-width="1.4" stroke-linejoin="round"/>`,
+  heart: (x, y) => `<path transform="translate(${x} ${y}) scale(.55)" d="M0 8 C-9 1 -10 -4 -10 -6 C-10 -10 -6 -12 -3.5 -12 C-1.5 -12 0 -10.5 0 -9 C0 -10.5 1.5 -12 3.5 -12 C6 -12 10 -10 10 -6 C10 -4 9 1 0 8 Z" fill="#e0605a"/>`,
+  flat:  (x, y) => `<path d="M${x - 4.5} ${y} Q${x} ${y + 1.5} ${x + 4.5} ${y}" stroke="#2b2a28" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+};
+const MOUTHS = {
+  bigSmile: (x, y) => `<path d="M${x - 6} ${y - 2} Q${x} ${y + 8} ${x + 6} ${y - 2} Z" fill="#6b2b2b"/><ellipse cx="${x}" cy="${y + 2.6}" rx="2.8" ry="1.6" fill="#f07b8a"/>`,
+  smile:    (x, y) => `<path d="M${x - 5} ${y - 1} Q${x} ${y + 4} ${x + 5} ${y - 1}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+  tongue:   (x, y) => `<path d="M${x - 5} ${y - 1} Q${x} ${y + 3} ${x + 5} ${y - 1}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M${x + .5} ${y + 1} q2.5 5 5 0 Z" fill="#f07b8a"/>`,
+  o:        (x, y) => `<ellipse cx="${x}" cy="${y + 1}" rx="2.6" ry="3.4" fill="#6b2b2b"/>`,
+  smirk:    (x, y) => `<path d="M${x - 5} ${y} Q${x + 1} ${y + 3.5} ${x + 5.5} ${y - 2.5}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
+};
+const EXPRESSIONS = [
+  { eyes: ["arc", "arc"], mouth: "bigSmile" }, { eyes: ["dot", "arc"], mouth: "tongue" },
+  { eyes: ["star", "star"], mouth: "o" },       { eyes: ["heart", "heart"], mouth: "smile" },
+  { eyes: ["big", "big"], mouth: "o" },         { eyes: ["flat", "flat"], mouth: "smirk" }
+];
+const POSES = [
+  { rot: -12, lift: 0 }, { rot: 12, lift: 0 }, { rot: 0, lift: 90, sq: [.95, 1.06] },
+  { rot: -6, lift: 0, flip: true }, { rot: 0, lift: 0, sq: [1.08, .92] }, { rot: 18, lift: 40 }
+];
+const CARD_BG = [["#fde2e4", "#e2ece9"], ["#dbeafe", "#fef3c7"], ["#ede4ff", "#fce7f3"], ["#d1fae5", "#e0f2fe"], ["#fff1d6", "#ffe0e0"]];
+let lastPick = { e: -1, p: -1, b: -1 };
+const pickNew = (len, prev) => { let i; do { i = Math.floor(Math.random() * len); } while (len > 1 && i === prev); return i; };
+
+function cardMascotSvg(m, ex) {
+  const a = m.anchor, [x1, y1, x2, y2] = a.eyes;
+  const face = EYES[ex.eyes[0]](x1, y1) + EYES[ex.eyes[1]](x2, y2) + (a.mouth ? MOUTHS[ex.mouth](...a.mouth) : "");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 130 130" width="1040" height="1040">
+    <style>.eye${a.mouth ? ",.mouth" : ""}{display:none}</style>${m.art}${face}${wornAcc(m)}</svg>`;
+}
+const loadImg = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+async function makeCard() {
+  const m = MASCOTS[state.mascot];
+  const ei = pickNew(EXPRESSIONS.length, lastPick.e), pi = pickNew(POSES.length, lastPick.p), bi = pickNew(CARD_BG.length, lastPick.b);
+  lastPick = { e: ei, p: pi, b: bi };
+  const ex = EXPRESSIONS[ei], pose = POSES[pi], bg = CARD_BG[bi];
+  const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const c = cv.getContext("2d"), F = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  // 背景
+  const g = c.createLinearGradient(0, 0, W * .4, H); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]);
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.globalAlpha = .35; c.fillStyle = "#fff";
+  for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(Math.random() * W, Math.random() * H, 40 + Math.random() * 120, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+  // 文字
+  const now = new Date(), t = target(), left = Math.max(0, Math.floor((t - now) / 86400000)), crossed = crossedDays();
+  c.fillStyle = "#2b2a28"; c.font = `800 60px ${F}`; c.textBaseline = "alphabetic";
+  c.fillText("Hi ", 80, 150); const hw = c.measureText("Hi ").width;
+  c.fillStyle = "#5b8fd6"; c.fillText(state.user, 80 + hw, 150);
+  c.fillStyle = "#2b2a28"; c.fillText(" !", 80 + hw + c.measureText(state.user).width, 150);
+  c.fillStyle = "#6f6a62"; c.font = `600 44px ${F}`; c.fillText("距離", 84, 250);
+  c.fillStyle = "#2b2a28"; c.font = `800 64px ${F}`; c.fillText(state.name || "目標日", 80, 330);
+  if (t - now > 0) {
+    c.fillStyle = "#d9534f"; c.font = `900 300px ${F}`; c.fillText(String(left), 64, 610);
+    const nw = c.measureText(String(left)).width;
+    c.fillStyle = "#6f6a62"; c.font = `700 90px ${F}`; c.fillText("天", 64 + nw + 20, 600);
+  } else {
+    c.fillStyle = "#d9534f"; c.font = `900 150px ${F}`; c.fillText("🎉 就是今天！", 64, 560);
+  }
+  // 進度條
+  const st = new Date(`${state.start}T00:00`), total = t - st;
+  const pct = total > 0 ? Math.min(1, Math.max(0, (now - st) / total)) : 1;
+  c.fillStyle = "rgba(255,255,255,.7)"; roundRect(c, 84, 665, 620, 26, 13); c.fill();
+  c.fillStyle = "#d9534f"; roundRect(c, 84, 665, Math.max(26, 620 * pct), 26, 13); c.fill();
+  c.fillStyle = "#6f6a62"; c.font = `500 34px ${F}`;
+  c.fillText(`已經過 ${(pct * 100).toFixed(1)}%・已劃掉 ${crossed} 天`, 84, 745);
+  // 特效符號點綴
+  const fx = m.fx || ["✨"];
+  c.textAlign = "center";
+  for (let i = 0; i < 12; i++) {
+    c.save(); c.globalAlpha = .85;
+    const top = i % 2 === 0, x = top ? 640 + Math.random() * 400 : 520 + Math.random() * 520,
+      y = top ? 70 + Math.random() * 520 : 800 + Math.random() * 420;
+    c.translate(x, y); c.rotate((Math.random() - .5) * .8);
+    c.font = `${40 + Math.random() * 40}px ${F}`; c.fillText(i % 3 ? fx[i % fx.length] : "✨", 0, 0); c.restore();
+  }
+  c.textAlign = "left";
+  // 吉祥物
+  const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(cardMascotSvg(m, ex)));
+  const cx = 770, cy = 1010, S = 560;
+  c.fillStyle = "rgba(0,0,0,.08)"; c.beginPath();
+  c.ellipse(cx, cy + S * .43, S * .3 * (pose.lift ? .7 : 1), 18, 0, 0, 7); c.fill();
+  c.save(); c.translate(cx, cy - (pose.lift || 0)); c.rotate((pose.rot || 0) * Math.PI / 180);
+  c.scale((pose.flip ? -1 : 1) * (pose.sq ? pose.sq[0] : 1), pose.sq ? pose.sq[1] : 1);
+  c.drawImage(img, -S / 2, -S / 2, S, S); c.restore();
+  if (pose.lift) {  // 跳起來的動感線（身體和影子之間）
+    const y0 = cy - pose.lift + S * .36, y1 = cy + S * .41;
+    c.strokeStyle = "rgba(43,42,40,.3)"; c.lineWidth = 7; c.lineCap = "round";
+    [[-80, .7], [0, 1], [80, .7]].forEach(([dx, k]) => {
+      const mid = (y0 + y1) / 2, len = (y1 - y0) * .45 * k;
+      c.beginPath(); c.moveTo(cx + dx, mid - len / 2); c.lineTo(cx + dx, mid + len / 2); c.stroke(); });
+  }
+  // 對話框
+  const lines = t - now > 0
+    ? [`還有 ${left} 天！`, "一起加油 💪", "每天劃掉一格 ✕", ...(crossed ? [`已經劃掉 ${crossed} 天囉`] : []), "好期待喔～", "Fighting！", `${m.name} 陪你倒數`]
+    : ["就是今天！🎉", "我們做到了！", "耶～～～！"];
+  const say1 = lines[Math.floor(Math.random() * lines.length)];
+  c.font = `700 46px ${F}`; const tw = c.measureText(say1).width, bx = 80, by = 820, bw = Math.min(520, tw + 70), bh = 100;
+  c.fillStyle = "#fff"; roundRect(c, bx, by, bw, bh, 50); c.fill();
+  c.beginPath(); c.moveTo(bx + bw - 60, by + bh - 10); c.lineTo(bx + bw + 30, by + bh + 40); c.lineTo(bx + bw - 110, by + bh - 4); c.fill();
+  c.fillStyle = "#2b2a28"; c.fillText(say1, bx + 35, by + 66, bw - 70);
+  // 頁尾
+  c.fillStyle = "rgba(43,42,40,.55)"; c.font = `500 32px ${F}`;
+  c.fillText(`${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}  ・  倒數月曆 with ${m.name}`, 84, 1290);
+  return cv;
+}
+let shareCanvas = null;
+async function refreshCard() {
+  $("shareImg").style.opacity = .4;
+  shareCanvas = await makeCard();
+  $("shareImg").src = shareCanvas.toDataURL("image/png");
+  $("shareImg").style.opacity = 1;
+}
+$("shareBtn").onclick = () => { $("shareModal").classList.add("open"); refreshCard(); };
+$("shareAgain").onclick = refreshCard;
+$("shareClose").onclick = () => $("shareModal").classList.remove("open");
+$("shareModal").addEventListener("click", e => { if (e.target === $("shareModal")) $("shareModal").classList.remove("open"); });
+$("shareSave").onclick = () => {
+  if (!shareCanvas) return;
+  const now = new Date(), fname = `countdown-${ymd(now)}.png`;
+  shareCanvas.toBlob(async blob => {
+    const file = new File([blob], fname, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "倒數月曆" }); return; } catch (e) { if (e.name === "AbortError") return; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }, "image/png");
+};
+
+/* ---------- 深色 / 淺色模式 ---------- */
+function applyTheme() {
+  const t = state.theme || "auto";
+  if (t === "auto") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+  document.querySelectorAll("#themeSeg button").forEach(b => {
+    b.classList.toggle("on", b.dataset.t === t); b.setAttribute("aria-pressed", b.dataset.t === t);
+  });
+}
+$("themeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.theme = b.dataset.t; save(); applyTheme();
+  say({ auto: "跟著系統設定走～", light: "🌝 亮亮模式！", dark: "🌚 夜間模式，晚安～" }[state.theme]);
+});
+applyTheme();
 
 renderCal(); tick(); setInterval(tick, 1000);
