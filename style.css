@@ -90,6 +90,19 @@ input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10
   font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
 .picker button svg{width:56px;height:56px}
 .picker button.on{border-color:#5b8fd6;background:var(--card)}
+.ward-info{color:var(--muted);font-weight:400}
+.wardrobe{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.wardrobe button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;
+  border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);
+  font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.wardrobe button .ic{font-size:24px;line-height:1.1}
+.wardrobe button small{font-size:11px;font-weight:400;color:var(--muted)}
+.wardrobe button.on{border-color:#5b8fd6;background:var(--card)}
+.wardrobe button.locked{cursor:default;opacity:.55}
+.wardrobe button.locked .ic{filter:grayscale(1)}
+.wardrobe button.fresh{animation:fresh 1s ease-out 3}
+@keyframes fresh{50%{box-shadow:0 0 0 6px rgba(91,143,214,.35)}}
+#mascotArt{transform-origin:50% 95%;transition:transform .6s}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 /* 畫叉視窗 */

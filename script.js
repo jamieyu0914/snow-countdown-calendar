@@ -233,6 +233,9 @@ function snow() {
 }
 function celebrate() {
   hop(); snow();
+  const got = checkUnlock();
+  if (got) { say(`🎁 解鎖新配件：${got.icon} ${got.name}！`, 5000); return; }
+  renderMascot();
   const n = daysLeft();
   const lines = n > 0
     ? [`又劃掉一天！剩 ${n} 天 ✨`, `好棒！再 ${n} 天就到了`, `打叉成功～加油！`]
@@ -253,7 +256,7 @@ $("btnCancel").onclick = closePad;
 $("btnClear").onclick = () => {
   clearTimeout(autoTimer);
   if (state.marks[padKey] && $("btnClear").textContent === "移除 ✕") {
-    delete state.marks[padKey]; save(); renderCal(); tick(); closePad(); return;
+    delete state.marks[padKey]; save(); renderCal(); tick(); renderMascot(); closePad(); return;
   }
   strokes = []; redraw();
 };
@@ -295,7 +298,7 @@ renderName();
 
 /* ---------- 吉祥物切換 ---------- */
 const MASCOTS = {
-  snow: { name: "Snow", fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
+  snow: { name: "Snow", anchor: { eyes: [40,60,60,60], neck: [50,84,50], flower: [74,40], badge: [37,89], top: [36,25,-22], hand: [17,64] }, fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 手套 -->
           <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
@@ -317,7 +320,7 @@ const MASCOTS = {
           <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
           <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
         ` },
-  pip: { name: "Bean", fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
+  pip: { name: "Bean", anchor: { eyes: [41,40,55,40], neck: [48,59,34], flower: [30,22], badge: [56,75], top: [44,10,-8], hand: [27,70] }, fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
           <ellipse cx="50" cy="95" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <path d="M38 88 L32 95 L44 95 Z" fill="#f08a3c"/>
@@ -354,7 +357,7 @@ const MASCOTS = {
           <circle cx="45" cy="23" r="3.5" fill="#fff"/>
           <path d="M43.5 23 L46.5 23 M45 21.5 L45 24.5" stroke="#3f78c8" stroke-width="1.2"/>
         ` },
-  bobo: { name: "Teddy", fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
+  bobo: { name: "Teddy", anchor: { eyes: [41,39,59,39], neck: [50,59,34], flower: [28,24], badge: [66,69], top: [54,12,8], hand: [24,70] }, fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
           <ellipse cx="50" cy="95" rx="24" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <rect x="37" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
@@ -389,7 +392,7 @@ const MASCOTS = {
           <path d="M34 28 Q50 34 66 28 L66 30 Q50 37 34 30 Z" fill="#1f4f3e"/>
           <path d="M50 14 l1.8 3.7 4 .6 -2.9 2.8 .7 4 -3.6-1.9 -3.6 1.9 .7-4 -2.9-2.8 4-.6 Z" fill="#e8b93c"/>
         ` },
-  momo: { name: "Coffee", fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
+  momo: { name: "Coffee", anchor: { eyes: [38,54,62,54], neck: [50,84,44], flower: [30,30], badge: [62,77], top: [42,28,-10], hand: [24,80] }, fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 尾巴 -->
           <path d="M78 78 Q96 70 90 52" stroke="#e2a768" stroke-width="7" fill="none" stroke-linecap="round"/>
@@ -422,9 +425,73 @@ const MASCOTS = {
         ` }
 };
 if (!MASCOTS[state.mascot]) state.mascot = "snow";
+
+/* ---------- 配件（每劃掉 10 天解鎖一個） ---------- */
+const ACCESSORIES = [
+  { id: "flower", name: "小花", icon: "🌸", draw: a => { const [x, y] = a.flower;
+      return `<g transform="translate(${x} ${y})">${[0,72,144,216,288].map(r =>
+        `<ellipse cx="0" cy="-5" rx="3.6" ry="5" fill="#f7a8c0" transform="rotate(${r})"/>`).join("")}
+        <circle r="3" fill="#ffd84d"/></g>`; } },
+  { id: "glasses", name: "眼鏡", icon: "👓", draw: a => { const [x1, y1, x2, y2] = a.eyes;
+      return `<g fill="rgba(255,255,255,.25)" stroke="#2b2a28" stroke-width="2">
+        <circle cx="${x1}" cy="${y1}" r="6.5"/><circle cx="${x2}" cy="${y2}" r="6.5"/>
+        <path d="M${x1 + 6.5} ${y1 - 1} Q${(x1 + x2) / 2} ${y1 - 4} ${x2 - 6.5} ${y2 - 1}" fill="none"/></g>`; } },
+  { id: "scarf", name: "圍巾", icon: "🧣", draw: a => { const [x, y, w] = a.neck, l = x - w / 2, r = x + w / 2;
+      return `<path d="M${l} ${y - 3} Q${x} ${y + 5} ${r} ${y - 3} L${r} ${y + 3} Q${x} ${y + 11} ${l} ${y + 3} Z" fill="#f07b8a"/>
+        <rect x="${r - 9}" y="${y + 2}" width="7" height="13" rx="2.5" fill="#f07b8a" transform="rotate(-12 ${r - 5} ${y + 8})"/>
+        <path d="M${l + 6} ${y} L${l + 6} ${y + 6} M${x} ${y + 2} L${x} ${y + 8} M${r - 6} ${y} L${r - 6} ${y + 6}" stroke="#fff" stroke-width="1.5" opacity=".7"/>`; } },
+  { id: "badge", name: "勳章", icon: "🏅", draw: a => { const [x, y] = a.badge;
+      return `<g transform="translate(${x} ${y})"><path d="M-4 -9 L-2 -2 L2 -2 L4 -9 Z" fill="#5b8fd6"/>
+        <circle r="5.5" fill="#f5c52f" stroke="#d9a520" stroke-width="1.2"/>
+        <path d="M0 -3 l1 2.1 2.3.3 -1.7 1.6 .4 2.3 -2-1.1 -2 1.1 .4-2.3 -1.7-1.6 2.3-.3 Z" fill="#fff"/></g>`; } },
+  { id: "balloon", name: "氣球", icon: "🎈", draw: a => { const [x, y] = a.hand, bx = x - 10, by = y - 46;
+      return `<path d="M${x} ${y} Q${x - 10} ${y - 20} ${bx} ${by + 12}" stroke="#8a857c" stroke-width="1.2" fill="none"/>
+        <ellipse cx="${bx}" cy="${by}" rx="9" ry="11" fill="#e0605a"/>
+        <path d="M${bx - 2} ${by + 10} L${bx + 2} ${by + 10} L${bx} ${by + 13} Z" fill="#e0605a"/>
+        <ellipse cx="${bx - 3}" cy="${by - 4}" rx="2.5" ry="4" fill="#fff" opacity=".45"/>`; } },
+  { id: "crown", name: "皇冠", icon: "👑", draw: a => { const [x, y, r = -8] = a.top;
+      return `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-11 4 L-11 -6 L-5.5 -1 L0 -9 L5.5 -1 L11 -6 L11 4 Z" fill="#f5c52f" stroke="#d9a520" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="0" cy="0" r="1.8" fill="#e0605a"/><circle cx="-6" cy="1" r="1.3" fill="#5b8fd6"/><circle cx="6" cy="1" r="1.3" fill="#5b8fd6"/></g>`; } }
+];
+const crossedDays = () => Object.keys(state.marks).length;
+if (!state.wear) state.wear = {};
+if (state.unlocked == null) state.unlocked = Math.min(ACCESSORIES.length, Math.floor(crossedDays() / 10));
+let freshId = null;
+function checkUnlock() {
+  const earned = Math.min(ACCESSORIES.length, Math.floor(crossedDays() / 10));
+  if (earned <= state.unlocked) return null;
+  const newly = ACCESSORIES.slice(state.unlocked, earned);
+  newly.forEach(a => state.wear[a.id] = true);
+  state.unlocked = earned; save();
+  freshId = newly[newly.length - 1].id;
+  renderMascot();
+  return newly[newly.length - 1];
+}
+function renderWardrobe() {
+  const n = crossedDays(), next = (state.unlocked + 1) * 10;
+  $("wardInfo").textContent = state.unlocked >= ACCESSORIES.length
+    ? `・全部解鎖！已劃掉 ${n} 天`
+    : `・已劃掉 ${n} 天，再 ${Math.max(0, next - n)} 天解鎖下一個`;
+  $("wardrobe").innerHTML = ACCESSORIES.map((a, i) => {
+    const open = i < state.unlocked, on = open && state.wear[a.id];
+    return `<button data-a="${a.id}" class="${open ? (on ? "on" : "") : "locked"} ${a.id === freshId ? "fresh" : ""}"
+      aria-pressed="${!!on}" ${open ? "" : "disabled"}>
+      <span class="ic">${open ? a.icon : "🔒"}</span>${open ? a.name : "？？？"}
+      <small>${open ? (on ? "穿戴中" : "點一下穿上") : `劃掉 ${(i + 1) * 10} 天解鎖`}</small></button>`;
+  }).join("");
+}
+$("wardrobe").addEventListener("click", e => {
+  const b = e.target.closest("button:not([disabled])"); if (!b) return;
+  const id = b.dataset.a; state.wear[id] = !state.wear[id]; freshId = null; save(); renderMascot();
+  if (state.wear[id]) { hop(); say(`戴上${ACCESSORIES.find(a => a.id === id).name}好看嗎？`); }
+});
 function renderMascot() {
   const m = MASCOTS[state.mascot];
-  $("mascotArt").innerHTML = `<g class="body">${m.art}</g>`;
+  const acc = ACCESSORIES.filter((a, i) => i < state.unlocked && state.wear[a.id]).map(a => a.draw(m.anchor)).join("");
+  $("mascotArt").innerHTML = `<g class="body">${m.art}${acc}</g>`;
+  // 長大：劃掉越多天，吉祥物越大一點（最多 +15%）
+  $("mascotArt").style.transform = `scale(${1 + Math.min(crossedDays(), 60) / 60 * .15})`;
+  renderWardrobe();
   $("mascotArt").setAttribute("aria-label", `吉祥物 ${m.name}`);
   const tag = $("mascotName"); tag.textContent = m.name; tag.style.background = m.color;
   $("picker").innerHTML = Object.entries(MASCOTS).map(([k, v]) =>
