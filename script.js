@@ -35,6 +35,16 @@ function tick() {
   $("barLabel").textContent = `已經過 ${pct.toFixed(1)}%・已劃掉 ${crossedCount} 天`;
 }
 
+const STICKERS = {
+  star: `<path d="M50 8 L61 37 L93 38 L68 58 L77 90 L50 72 L23 90 L32 58 L7 38 L39 37 Z" fill="#f5c52f" stroke="#e0a91f" stroke-width="4" stroke-linejoin="round"/>
+         <circle cx="40" cy="50" r="4" fill="#2b2a28"/><circle cx="60" cy="50" r="4" fill="#2b2a28"/>
+         <path d="M44 60 Q50 65 56 60" stroke="#2b2a28" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  heart: `<path d="M50 88 C20 66 6 50 6 32 C6 18 17 8 30 8 C39 8 46 13 50 20 C54 13 61 8 70 8 C83 8 94 18 94 32 C94 50 80 66 50 88 Z" fill="#f07b8a" stroke="#d95f70" stroke-width="4"/>
+          <ellipse cx="30" cy="28" rx="8" ry="5" fill="#fff" opacity=".5" transform="rotate(-30 30 28)"/>`
+};
+const stickerArt = id => STICKERS[id] || (typeof MASCOTS !== "undefined" && MASCOTS[id] ? MASCOTS[id].art : "");
+const markToSvg = mark => Array.isArray(mark) ? strokesToSvg(mark)
+  : `<svg class="stamp" viewBox="0 0 100 100" style="transform:rotate(${mark.r || 0}deg)">${stickerArt(mark.s)}</svg>`;
 const strokesToSvg = strokes =>
   `<svg viewBox="0 0 100 100" preserveAspectRatio="none">${strokes.map(s =>
     `<polyline points="${s.map(p => `${(p[0]*100).toFixed(1)},${(p[1]*100).toFixed(1)}`).join(" ")}"/>`).join("")}</svg>`;
@@ -57,7 +67,7 @@ function renderCal() {
     if (mark) cls.push("crossed");
     if (cur.getTime() === today.getTime()) cls.push("today");
     g.insertAdjacentHTML("beforeend",
-      `<div class="${cls.join(" ")}" data-key="${key}">${d}${note ? `<small>${note}</small>` : ""}${mark ? strokesToSvg(mark) : ""}</div>`);
+      `<div class="${cls.join(" ")}" data-key="${key}">${d}${note ? `<small>${note}</small>` : ""}${mark ? markToSvg(mark) : ""}</div>`);
   }
 }
 
@@ -120,11 +130,21 @@ function openPad(key) {
   const wk = "日一二三四五六"[new Date(y, m - 1, d).getDay()];
   $("padTitle").textContent = `${m} 月 ${d} 日（${wk}）`;
   $("padNum").textContent = d;
-  strokes = (state.marks[key] || []).map(s => s.slice());
-  $("btnClear").textContent = state.marks[key] ? "移除 ✕" : "清除";
+  const mk = state.marks[key];
+  strokes = Array.isArray(mk) ? mk.map(s => s.slice()) : [];
+  $("btnClear").textContent = mk ? "移除 ✕" : "清除";
+  const ids = ["star", "heart", ...Object.keys(MASCOTS)];
+  $("stickers").innerHTML = ids.map(id =>
+    `<button data-s="${id}" class="${mk && mk.s === id ? "on" : ""}" aria-label="${STICKERS[id] ? (id === "star" ? "星星" : "愛心") : MASCOTS[id].name} 貼紙">
+      <svg viewBox="0 0 100 100">${stickerArt(id)}</svg></button>`).join("");
   $("modal").classList.add("open");
   requestAnimationFrame(sizeCanvas);
 }
+$("stickers").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.marks[padKey] = { s: b.dataset.s, r: Math.round(Math.random() * 24 - 12) };
+  save(); renderCal(); tick(); closePad(); celebrate();
+});
 function closePad() { clearTimeout(autoTimer); $("modal").classList.remove("open"); current = null; }
 function finish() {
   clearTimeout(autoTimer);
@@ -148,23 +168,77 @@ function hop() {
   const m = $("mascot");
   m.classList.remove("happy"); void m.offsetWidth; m.classList.add("happy");
 }
-function snow(n = 18) {
+function snow() {
+  const m = MASCOTS[state.mascot] || {};
+  const items = m.fx || ["❄️"], dir = m.dir || "down";
+  const W = innerWidth, H = innerHeight, rnd = (a, b) => a + Math.random() * (b - a);
+  const T = (x, y, r = 0, sx = 1, sy = sx) => `translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy})`;
+  const n = { concert: 36, bounce: 28, leaf: 34 }[dir] || 40;
+  // 音樂表演：從吉祥物身上跟著節拍湧出
+  const mr = $("mascot").getBoundingClientRect(), vis = mr.top > 0 && mr.bottom < H;
+  const ox = vis ? mr.left + mr.width / 2 - 14 : W / 2 - 14, oy = vis ? mr.top + mr.height * .45 : H - 30;
+  if (dir === "concert") {
+    const beat = 420;
+    $("mascot").animate([{ transform: "scale(1)" }, { transform: "scale(1.08)" }, { transform: "scale(1)" }],
+      { duration: beat, iterations: 6, easing: "ease-out" });
+  }
   for (let i = 0; i < n; i++) {
-    const s = document.createElement("div");
-    s.className = "snowfx"; s.textContent = "❄";
-    s.style.left = Math.random() * 100 + "vw";
-    s.style.fontSize = 10 + Math.random() * 14 + "px";
-    s.style.animationDuration = 2 + Math.random() * 2 + "s";
-    s.style.animationDelay = Math.random() * .6 + "s";
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 5000);
+    const el = document.createElement("div");
+    el.className = "snowfx";
+    el.textContent = items[i % items.length];
+    el.style.left = "0px"; el.style.top = "0px";
+    el.style.fontSize = rnd(18, 32) + "px";
+    let kf, opt;
+    if (dir === "concert") {
+      const ang = (rnd(-70, 70) + (oy < H * .4 ? 215 : 0)) * Math.PI / 180, dist = rnd(H * .45, H * .8), steps = 12;
+      kf = [];
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const x = ox + Math.sin(ang) * dist * t + Math.sin(t * Math.PI * 4 + i) * 18;
+        const y = oy - Math.cos(ang) * dist * t;
+        const pulse = s % 2 ? 1.35 : 1;
+        kf.push({ transform: T(x, y, Math.sin(t * Math.PI * 4) * 20, pulse * (.4 + t * .8 > 1 ? 1 : .4 + t * .8)),
+                  opacity: t > .8 ? (1 - t) * 5 : 1 });
+      }
+      opt = { duration: 420 * steps / 2, delay: i * 90, easing: "linear" };
+    } else if (dir === "bounce") {
+      // 打鼓：落下後咚咚彈跳
+      const x = rnd(10, W - 50), floor = H - 50, h1 = rnd(H * .18, H * .3), h2 = h1 * .4, r = rnd(-30, 30);
+      kf = [
+        { offset: 0,   transform: T(x, -50, 0), easing: "ease-in" },
+        { offset: .4,  transform: T(x, floor, r, 1.25, .7), easing: "ease-out" },
+        { offset: .58, transform: T(x, floor - h1, r * 1.5), easing: "ease-in" },
+        { offset: .74, transform: T(x, floor, r * 2, 1.2, .78), easing: "ease-out" },
+        { offset: .84, transform: T(x, floor - h2, r * 2.3), easing: "ease-in" },
+        { offset: .93, transform: T(x, floor, r * 2.5, 1.1, .88), opacity: 1 },
+        { offset: 1,   transform: T(x, floor, r * 2.5), opacity: 0 }];
+      opt = { duration: rnd(2000, 2600), delay: i * 90 };
+    } else if (dir === "leaf") {
+      // 落葉：像葉子一樣左右擺盪、傾斜飄落
+      const x0 = rnd(0, W - 30), amp = rnd(40, 90), swings = rnd(2, 3.5), steps = 16;
+      kf = [];
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps, ph = t * Math.PI * swings;
+        kf.push({ transform: T(x0 + Math.sin(ph) * amp, -50 + t * (H + 100), Math.cos(ph) * 40) });
+      }
+      opt = { duration: rnd(4000, 5500), delay: rnd(0, 1800), easing: "ease-in-out" };
+    } else {
+      const x = rnd(0, W), spin = rnd(-360, 360);
+      kf = [{ transform: T(x, -40, 0) }, { transform: T(x + rnd(-40, 40), H + 40, spin) }];
+      opt = { duration: rnd(2200, 4000), delay: rnd(0, 1200), easing: "linear" };
+    }
+    document.body.appendChild(el);
+    el.animate(kf, { ...opt, fill: "both" }).onfinish = () => el.remove();
   }
 }
 function celebrate() {
   hop(); snow();
+  const got = checkUnlock();
+  if (got) { say(`🎁 解鎖新配件：${got.icon} ${got.name}！`, 5000); return; }
+  renderMascot();
   const n = daysLeft();
   const lines = n > 0
-    ? [`又劃掉一天！ ✨`, `好棒！`, `打叉成功～加油！`]
+    ? [`又劃掉一天！剩 ${n} 天 ✨`, `好棒！再 ${n} 天就到了`, `打叉成功～加油！`]
     : ["就是今天啦！🎉"];
   say(lines[Math.floor(Math.random() * lines.length)]);
 }
@@ -182,7 +256,7 @@ $("btnCancel").onclick = closePad;
 $("btnClear").onclick = () => {
   clearTimeout(autoTimer);
   if (state.marks[padKey] && $("btnClear").textContent === "移除 ✕") {
-    delete state.marks[padKey]; save(); renderCal(); tick(); closePad(); return;
+    delete state.marks[padKey]; save(); renderCal(); tick(); renderMascot(); closePad(); return;
   }
   strokes = []; redraw();
 };
@@ -221,5 +295,368 @@ function editName() {
 }
 $("editName").onclick = editName;
 renderName();
+
+/* ---------- 吉祥物切換 ---------- */
+const MASCOTS = {
+  snow: { name: "Snow", anchor: { mouth: [50,70], eyes: [40,60,60,60], neck: [50,84,50], flower: [74,40], badge: [37,89], top: [36,25,-22], hand: [17,64] }, fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 手套 -->
+          <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
+          <circle cx="83" cy="64" r="7" fill="#5b8fd6"/>
+          <!-- 身體 -->
+          <circle cx="50" cy="60" r="33" fill="#fdfdfd" stroke="#dfe7ef" stroke-width="2"/>
+          <!-- 毛線帽 -->
+          <path d="M22 44 Q50 2 78 44 Z" fill="#e0605a"/>
+          <rect x="20" y="40" width="60" height="9" rx="4.5" fill="#f3f0ea"/>
+          <circle cx="50" cy="12" r="7" fill="#f3f0ea"/>
+          <path d="M34 30 L38 40 M50 24 L50 40 M66 30 L62 40" stroke="#c94b46" stroke-width="2" stroke-linecap="round"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="40" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="60" cy="60" rx="3.2" ry="4" fill="#2b2a28"/>
+          <circle cx="33" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <circle cx="67" cy="68" r="4.5" fill="#f7b6b0" opacity=".8"/>
+          <path class="mouth" d="M45 68 Q50 73 55 68" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- 圍巾 -->
+          <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
+          <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
+        ` },
+  pip: { name: "Bean", anchor: { mouth: null, eyes: [41,40,55,40], neck: [48,59,34], flower: [30,22], badge: [56,75], top: [44,10,-8], hand: [27,70] }, fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
+          <ellipse cx="50" cy="95" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 腳 -->
+          <path d="M38 88 L32 95 L44 95 Z" fill="#f08a3c"/>
+          <path d="M58 88 L52 95 L64 95 Z" fill="#f08a3c"/>
+          <!-- 身體 + 吊帶褲 -->
+          <ellipse cx="50" cy="72" rx="24" ry="19" fill="#fdfdfd" stroke="#dfe3e8" stroke-width="1.5"/>
+          <path d="M28 74 Q50 98 72 74 L72 72 Q50 80 28 72 Z" fill="#7cae5a"/>
+          <rect x="40" y="70" width="20" height="14" rx="3" fill="#7cae5a"/>
+          <path d="M41 70 L36 58 M59 70 L64 58" stroke="#7cae5a" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="50" cy="77" r="2" fill="#f3f0ea"/>
+          <!-- 小翅膀 -->
+          <ellipse cx="27" cy="70" rx="6" ry="9" fill="#eef1f4" transform="rotate(20 27 70)"/>
+          <!-- 麥克風 -->
+          <g transform="rotate(25 70 64)">
+            <rect x="66.5" y="60" width="7" height="22" rx="3" fill="#3b3f47"/>
+            <rect x="66" y="60" width="8" height="3" fill="#5bb5c9"/>
+            <circle cx="70" cy="52" r="9" fill="#c9ced6" stroke="#9aa1ab" stroke-width="1.5"/>
+            <path d="M62 49 L78 49 M61.5 53 L78.5 53 M63 57 L77 57 M66 44 L66 60 M70 43 L70 61 M74 44 L74 60" stroke="#9aa1ab" stroke-width="1"/>
+          </g>
+          <ellipse cx="68" cy="72" rx="5" ry="7" fill="#eef1f4"/>
+          <!-- 頭 -->
+          <circle cx="48" cy="40" r="20" fill="#fdfdfd" stroke="#dfe3e8" stroke-width="1.5"/>
+          <ellipse class="eye" cx="41" cy="40" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="55" cy="40" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <circle cx="36" cy="47" r="3.5" fill="#f7a39a" opacity=".7"/>
+          <circle cx="60" cy="47" r="3.5" fill="#f7a39a" opacity=".7"/>
+          <ellipse cx="48" cy="48" rx="7" ry="3.5" fill="#f08a3c"/>
+          <path d="M42 48 Q48 51 54 48" stroke="#c96a26" stroke-width="1.2" fill="none"/>
+          <!-- 棒球帽 -->
+          <path d="M30 32 Q30 12 48 12 Q66 12 66 32 Z" fill="#3f78c8"/>
+          <path d="M48 12 L48 32 M38 15 Q36 24 37 32 M58 15 Q60 24 59 32" stroke="#2f5f9e" stroke-width="1.2" fill="none"/>
+          <circle cx="48" cy="12.5" r="2.2" fill="#2f5f9e"/>
+          <path d="M60 30 Q76 28 80 33 Q70 36 58 34 Z" fill="#2f5f9e"/>
+          <circle cx="45" cy="23" r="3.5" fill="#fff"/>
+          <path d="M43.5 23 L46.5 23 M45 21.5 L45 24.5" stroke="#3f78c8" stroke-width="1.2"/>
+        ` },
+  bobo: { name: "Teddy", anchor: { mouth: [50,51], eyes: [41,39,59,39], neck: [50,59,34], flower: [28,24], badge: [66,69], top: [54,12,8], hand: [24,70] }, fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
+          <ellipse cx="50" cy="95" rx="24" ry="4" fill="#000" opacity=".08"/>
+          <!-- 腳 -->
+          <rect x="37" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
+          <rect x="53" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
+          <!-- 手 -->
+          <circle cx="24" cy="70" r="6.5" fill="#a5714a"/>
+          <circle cx="76" cy="70" r="6.5" fill="#a5714a"/>
+          <!-- 制服 -->
+          <rect x="28" y="56" width="44" height="32" rx="14" fill="#2f7a5f"/>
+          <path d="M30 58 L70 86 M70 58 L30 86" stroke="#f3f0ea" stroke-width="4" stroke-linecap="round"/>
+          <!-- 小鼓 -->
+          <rect x="38" y="70" width="24" height="13" rx="3" fill="#f3f0ea" stroke="#c9a24a" stroke-width="2"/>
+          <path d="M38 73 L62 73 M38 80 L62 80" stroke="#c9a24a" stroke-width="2"/>
+          <path d="M42 73 L48 80 L54 73 L60 80" stroke="#2f7a5f" stroke-width="1.5" fill="none"/>
+          <!-- 耳朵 -->
+          <circle cx="30" cy="22" r="8" fill="#a5714a"/>
+          <circle cx="70" cy="22" r="8" fill="#a5714a"/>
+          <circle cx="30" cy="22" r="4" fill="#d9a77c"/>
+          <circle cx="70" cy="22" r="4" fill="#d9a77c"/>
+          <!-- 頭 -->
+          <circle cx="50" cy="40" r="23" fill="#a5714a"/>
+          <ellipse cx="50" cy="48" rx="10" ry="7.5" fill="#e8c7a3"/>
+          <ellipse cx="50" cy="45" rx="3.2" ry="2.4" fill="#3b2a20"/>
+          <path class="mouth" d="M47 50 Q50 53 53 50" stroke="#3b2a20" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <ellipse class="eye" cx="41" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="59" cy="39" rx="2.8" ry="3.4" fill="#2b2a28"/>
+          <circle cx="34" cy="47" r="3.5" fill="#f7a39a" opacity=".6"/>
+          <circle cx="66" cy="47" r="3.5" fill="#f7a39a" opacity=".6"/>
+          <!-- 大盤帽 -->
+          <ellipse cx="50" cy="22" rx="22" ry="7" fill="#2f7a5f"/>
+          <rect x="34" y="21" width="32" height="7" rx="2" fill="#f3f0ea"/>
+          <path d="M34 28 Q50 34 66 28 L66 30 Q50 37 34 30 Z" fill="#1f4f3e"/>
+          <path d="M50 14 l1.8 3.7 4 .6 -2.9 2.8 .7 4 -3.6-1.9 -3.6 1.9 .7-4 -2.9-2.8 4-.6 Z" fill="#e8b93c"/>
+        ` },
+  momo: { name: "Coffee", anchor: { mouth: [50,66], eyes: [38,54,62,54], neck: [50,84,44], flower: [30,30], badge: [62,77], top: [42,28,-10], hand: [24,80] }, fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
+          <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
+          <!-- 尾巴 -->
+          <path d="M78 78 Q96 70 90 52" stroke="#e2a768" stroke-width="7" fill="none" stroke-linecap="round"/>
+          <!-- 耳朵 -->
+          <path d="M22 40 L26 14 L44 30 Z" fill="#e2a768"/>
+          <path d="M78 40 L74 14 L56 30 Z" fill="#e2a768"/>
+          <path d="M27 34 L29 21 L38 30 Z" fill="#f7c9c4"/>
+          <path d="M73 34 L71 21 L62 30 Z" fill="#f7c9c4"/>
+          <!-- 身體 -->
+          <ellipse cx="50" cy="60" rx="34" ry="32" fill="#e2a768"/>
+          <ellipse cx="50" cy="72" rx="20" ry="16" fill="#fffaf3"/>
+          <!-- 條紋 -->
+          <path d="M38 32 L41 39 M62 32 L59 39" stroke="#c98a52" stroke-width="3" stroke-linecap="round"/>
+          <!-- 白色額頭與嘴邊 -->
+          <path d="M44 30 Q50 26 56 30 L54 50 Q50 52 46 50 Z" fill="#fffaf3"/>
+          <ellipse cx="50" cy="64" rx="14" ry="10" fill="#fffaf3"/>
+          <!-- 臉 -->
+          <ellipse class="eye" cx="38" cy="54" rx="3.4" ry="4.4" fill="#2b2a28"/>
+          <ellipse class="eye" cx="62" cy="54" rx="3.4" ry="4.4" fill="#2b2a28"/>
+          <circle cx="30" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
+          <circle cx="70" cy="62" r="4.5" fill="#f7a39a" opacity=".7"/>
+          <path d="M47 60 L53 60 L50 63 Z" fill="#e0605a"/>
+          <path class="mouth" d="M44 65 Q47 68 50 65 Q53 68 56 65" stroke="#2b2a28" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M20 58 L32 60 M20 64 L32 63 M80 58 L68 60 M80 64 L68 63" stroke="#8a5a2b" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- 小葉子 -->
+          <path d="M50 26 Q56 14 66 16 Q60 26 50 26 Z" fill="#6cbf6a"/>
+          <!-- 手 -->
+          <circle cx="24" cy="80" r="7" fill="#fffaf3" stroke="#e2a768" stroke-width="2"/>
+          <circle cx="76" cy="80" r="7" fill="#fffaf3" stroke="#e2a768" stroke-width="2"/>
+        ` }
+};
+if (!MASCOTS[state.mascot]) state.mascot = "snow";
+
+/* ---------- 配件（每劃掉 10 天解鎖一個） ---------- */
+const ACCESSORIES = [
+  { id: "flower", name: "小花", icon: "🌸", draw: a => { const [x, y] = a.flower;
+      return `<g transform="translate(${x} ${y})">${[0,72,144,216,288].map(r =>
+        `<ellipse cx="0" cy="-5" rx="3.6" ry="5" fill="#f7a8c0" transform="rotate(${r})"/>`).join("")}
+        <circle r="3" fill="#ffd84d"/></g>`; } },
+  { id: "glasses", name: "眼鏡", icon: "👓", draw: a => { const [x1, y1, x2, y2] = a.eyes;
+      return `<g fill="rgba(255,255,255,.25)" stroke="#2b2a28" stroke-width="2">
+        <circle cx="${x1}" cy="${y1}" r="6.5"/><circle cx="${x2}" cy="${y2}" r="6.5"/>
+        <path d="M${x1 + 6.5} ${y1 - 1} Q${(x1 + x2) / 2} ${y1 - 4} ${x2 - 6.5} ${y2 - 1}" fill="none"/></g>`; } },
+  { id: "scarf", name: "圍巾", icon: "🧣", draw: a => { const [x, y, w] = a.neck, l = x - w / 2, r = x + w / 2;
+      return `<path d="M${l} ${y - 3} Q${x} ${y + 5} ${r} ${y - 3} L${r} ${y + 3} Q${x} ${y + 11} ${l} ${y + 3} Z" fill="#f07b8a"/>
+        <rect x="${r - 9}" y="${y + 2}" width="7" height="13" rx="2.5" fill="#f07b8a" transform="rotate(-12 ${r - 5} ${y + 8})"/>
+        <path d="M${l + 6} ${y} L${l + 6} ${y + 6} M${x} ${y + 2} L${x} ${y + 8} M${r - 6} ${y} L${r - 6} ${y + 6}" stroke="#fff" stroke-width="1.5" opacity=".7"/>`; } },
+  { id: "badge", name: "勳章", icon: "🏅", draw: a => { const [x, y] = a.badge;
+      return `<g transform="translate(${x} ${y})"><path d="M-4 -9 L-2 -2 L2 -2 L4 -9 Z" fill="#5b8fd6"/>
+        <circle r="5.5" fill="#f5c52f" stroke="#d9a520" stroke-width="1.2"/>
+        <path d="M0 -3 l1 2.1 2.3.3 -1.7 1.6 .4 2.3 -2-1.1 -2 1.1 .4-2.3 -1.7-1.6 2.3-.3 Z" fill="#fff"/></g>`; } },
+  { id: "balloon", name: "氣球", icon: "🎈", draw: a => { const [x, y] = a.hand, bx = x - 10, by = y - 46;
+      return `<path d="M${x} ${y} Q${x - 10} ${y - 20} ${bx} ${by + 12}" stroke="#8a857c" stroke-width="1.2" fill="none"/>
+        <ellipse cx="${bx}" cy="${by}" rx="9" ry="11" fill="#e0605a"/>
+        <path d="M${bx - 2} ${by + 10} L${bx + 2} ${by + 10} L${bx} ${by + 13} Z" fill="#e0605a"/>
+        <ellipse cx="${bx - 3}" cy="${by - 4}" rx="2.5" ry="4" fill="#fff" opacity=".45"/>`; } },
+  { id: "crown", name: "皇冠", icon: "👑", draw: a => { const [x, y, r = -8] = a.top;
+      return `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-11 4 L-11 -6 L-5.5 -1 L0 -9 L5.5 -1 L11 -6 L11 4 Z" fill="#f5c52f" stroke="#d9a520" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="0" cy="0" r="1.8" fill="#e0605a"/><circle cx="-6" cy="1" r="1.3" fill="#5b8fd6"/><circle cx="6" cy="1" r="1.3" fill="#5b8fd6"/></g>`; } }
+];
+const crossedDays = () => Object.keys(state.marks).length;
+if (!state.wear) state.wear = {};
+if (state.unlocked == null) state.unlocked = Math.min(ACCESSORIES.length, Math.floor(crossedDays() / 10));
+let freshId = null;
+function checkUnlock() {
+  const earned = Math.min(ACCESSORIES.length, Math.floor(crossedDays() / 10));
+  if (earned <= state.unlocked) return null;
+  const newly = ACCESSORIES.slice(state.unlocked, earned);
+  newly.forEach(a => state.wear[a.id] = true);
+  state.unlocked = earned; save();
+  freshId = newly[newly.length - 1].id;
+  renderMascot();
+  return newly[newly.length - 1];
+}
+function renderWardrobe() {
+  const n = crossedDays(), next = (state.unlocked + 1) * 10;
+  $("wardInfo").textContent = state.unlocked >= ACCESSORIES.length
+    ? `・全部解鎖！已劃掉 ${n} 天`
+    : `・已劃掉 ${n} 天，再 ${Math.max(0, next - n)} 天解鎖下一個`;
+  $("wardrobe").innerHTML = ACCESSORIES.map((a, i) => {
+    const open = i < state.unlocked, on = open && state.wear[a.id];
+    return `<button data-a="${a.id}" class="${open ? (on ? "on" : "") : "locked"} ${a.id === freshId ? "fresh" : ""}"
+      aria-pressed="${!!on}" ${open ? "" : "disabled"}>
+      <span class="ic">${open ? a.icon : "🔒"}</span>${open ? a.name : "？？？"}
+      <small>${open ? (on ? "穿戴中" : "點一下穿上") : `劃掉 ${(i + 1) * 10} 天解鎖`}</small></button>`;
+  }).join("");
+}
+$("wardrobe").addEventListener("click", e => {
+  const b = e.target.closest("button:not([disabled])"); if (!b) return;
+  const id = b.dataset.a; state.wear[id] = !state.wear[id]; freshId = null; save(); renderMascot();
+  if (state.wear[id]) { hop(); say(`戴上${ACCESSORIES.find(a => a.id === id).name}好看嗎？`); }
+});
+function renderMascot() {
+  const m = MASCOTS[state.mascot];
+  const acc = wornAcc(m);
+  $("mascotArt").innerHTML = `<g class="body">${m.art}${acc}</g>`;
+  // 長大：劃掉越多天，吉祥物越大一點（最多 +15%）
+  $("mascotArt").style.transform = `scale(${1 + Math.min(crossedDays(), 60) / 60 * .15})`;
+  renderWardrobe();
+  $("mascotArt").setAttribute("aria-label", `吉祥物 ${m.name}`);
+  const tag = $("mascotName"); tag.textContent = m.name; tag.style.background = m.color;
+  $("picker").innerHTML = Object.entries(MASCOTS).map(([k, v]) =>
+    `<button data-k="${k}" class="${k === state.mascot ? "on" : ""}" aria-pressed="${k === state.mascot}">
+      <svg viewBox="0 0 100 100">${v.art}</svg>${v.name}</button>`).join("");
+}
+$("picker").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || b.dataset.k === state.mascot) return;
+  state.mascot = b.dataset.k; save(); renderMascot(); hop();
+  say(`嗨 ${state.user}，我是 ${MASCOTS[state.mascot].name}！`);
+});
+renderMascot();
+
+/* ---------- 分享圖卡 ---------- */
+function wornAcc(m) { return ACCESSORIES.filter((a, i) => i < state.unlocked && state.wear[a.id]).map(a => a.draw(m.anchor)).join(""); }
+const EYES = {
+  arc:   (x, y) => `<path d="M${x - 4.5} ${y + 1.5} Q${x} ${y - 4.5} ${x + 4.5} ${y + 1.5}" stroke="#2b2a28" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+  dot:   (x, y) => `<ellipse cx="${x}" cy="${y}" rx="3.2" ry="4" fill="#2b2a28"/><circle cx="${x + 1}" cy="${y - 1.4}" r="1.1" fill="#fff"/>`,
+  big:   (x, y) => `<circle cx="${x}" cy="${y}" r="5" fill="#2b2a28"/><circle cx="${x + 1.6}" cy="${y - 1.8}" r="1.8" fill="#fff"/><circle cx="${x - 1.5}" cy="${y + 1.8}" r=".9" fill="#fff"/>`,
+  star:  (x, y) => `<path transform="translate(${x} ${y}) scale(.62)" d="M0 -10 L2.9 -3.1 L10 -3.1 L4.3 1.4 L6.4 8.6 L0 4.3 L-6.4 8.6 L-4.3 1.4 L-10 -3.1 L-2.9 -3.1 Z" fill="#f5c52f" stroke="#d9a520" stroke-width="1.4" stroke-linejoin="round"/>`,
+  heart: (x, y) => `<path transform="translate(${x} ${y}) scale(.55)" d="M0 8 C-9 1 -10 -4 -10 -6 C-10 -10 -6 -12 -3.5 -12 C-1.5 -12 0 -10.5 0 -9 C0 -10.5 1.5 -12 3.5 -12 C6 -12 10 -10 10 -6 C10 -4 9 1 0 8 Z" fill="#e0605a"/>`,
+  flat:  (x, y) => `<path d="M${x - 4.5} ${y} Q${x} ${y + 1.5} ${x + 4.5} ${y}" stroke="#2b2a28" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+};
+const MOUTHS = {
+  bigSmile: (x, y) => `<path d="M${x - 6} ${y - 2} Q${x} ${y + 8} ${x + 6} ${y - 2} Z" fill="#6b2b2b"/><ellipse cx="${x}" cy="${y + 2.6}" rx="2.8" ry="1.6" fill="#f07b8a"/>`,
+  smile:    (x, y) => `<path d="M${x - 5} ${y - 1} Q${x} ${y + 4} ${x + 5} ${y - 1}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>`,
+  tongue:   (x, y) => `<path d="M${x - 5} ${y - 1} Q${x} ${y + 3} ${x + 5} ${y - 1}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M${x + .5} ${y + 1} q2.5 5 5 0 Z" fill="#f07b8a"/>`,
+  o:        (x, y) => `<ellipse cx="${x}" cy="${y + 1}" rx="2.6" ry="3.4" fill="#6b2b2b"/>`,
+  smirk:    (x, y) => `<path d="M${x - 5} ${y} Q${x + 1} ${y + 3.5} ${x + 5.5} ${y - 2.5}" stroke="#2b2a28" stroke-width="2.2" fill="none" stroke-linecap="round"/>`
+};
+const EXPRESSIONS = [
+  { eyes: ["arc", "arc"], mouth: "bigSmile" }, { eyes: ["dot", "arc"], mouth: "tongue" },
+  { eyes: ["star", "star"], mouth: "o" },       { eyes: ["heart", "heart"], mouth: "smile" },
+  { eyes: ["big", "big"], mouth: "o" },         { eyes: ["flat", "flat"], mouth: "smirk" }
+];
+const POSES = [
+  { rot: -12, lift: 0 }, { rot: 12, lift: 0 }, { rot: 0, lift: 90, sq: [.95, 1.06] },
+  { rot: -6, lift: 0, flip: true }, { rot: 0, lift: 0, sq: [1.08, .92] }, { rot: 18, lift: 40 }
+];
+const CARD_BG = [["#fde2e4", "#e2ece9"], ["#dbeafe", "#fef3c7"], ["#ede4ff", "#fce7f3"], ["#d1fae5", "#e0f2fe"], ["#fff1d6", "#ffe0e0"]];
+let lastPick = { e: -1, p: -1, b: -1 };
+const pickNew = (len, prev) => { let i; do { i = Math.floor(Math.random() * len); } while (len > 1 && i === prev); return i; };
+
+function cardMascotSvg(m, ex) {
+  const a = m.anchor, [x1, y1, x2, y2] = a.eyes;
+  const face = EYES[ex.eyes[0]](x1, y1) + EYES[ex.eyes[1]](x2, y2) + (a.mouth ? MOUTHS[ex.mouth](...a.mouth) : "");
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-15 -25 130 130" width="1040" height="1040">
+    <style>.eye${a.mouth ? ",.mouth" : ""}{display:none}</style>${m.art}${face}${wornAcc(m)}</svg>`;
+}
+const loadImg = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+async function makeCard() {
+  const m = MASCOTS[state.mascot];
+  const ei = pickNew(EXPRESSIONS.length, lastPick.e), pi = pickNew(POSES.length, lastPick.p), bi = pickNew(CARD_BG.length, lastPick.b);
+  lastPick = { e: ei, p: pi, b: bi };
+  const ex = EXPRESSIONS[ei], pose = POSES[pi], bg = CARD_BG[bi];
+  const W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const c = cv.getContext("2d"), F = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  // 背景
+  const g = c.createLinearGradient(0, 0, W * .4, H); g.addColorStop(0, bg[0]); g.addColorStop(1, bg[1]);
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.globalAlpha = .35; c.fillStyle = "#fff";
+  for (let i = 0; i < 7; i++) { c.beginPath(); c.arc(Math.random() * W, Math.random() * H, 40 + Math.random() * 120, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+  // 文字
+  const now = new Date(), t = target(), left = Math.max(0, Math.floor((t - now) / 86400000)), crossed = crossedDays();
+  c.fillStyle = "#2b2a28"; c.font = `800 60px ${F}`; c.textBaseline = "alphabetic";
+  c.fillText("Hi ", 80, 150); const hw = c.measureText("Hi ").width;
+  c.fillStyle = "#5b8fd6"; c.fillText(state.user, 80 + hw, 150);
+  c.fillStyle = "#2b2a28"; c.fillText(" !", 80 + hw + c.measureText(state.user).width, 150);
+  c.fillStyle = "#6f6a62"; c.font = `600 44px ${F}`; c.fillText("距離", 84, 250);
+  c.fillStyle = "#2b2a28"; c.font = `800 64px ${F}`; c.fillText(state.name || "目標日", 80, 330);
+  if (t - now > 0) {
+    c.fillStyle = "#d9534f"; c.font = `900 300px ${F}`; c.fillText(String(left), 64, 610);
+    const nw = c.measureText(String(left)).width;
+    c.fillStyle = "#6f6a62"; c.font = `700 90px ${F}`; c.fillText("天", 64 + nw + 20, 600);
+  } else {
+    c.fillStyle = "#d9534f"; c.font = `900 150px ${F}`; c.fillText("🎉 就是今天！", 64, 560);
+  }
+  // 進度條
+  const st = new Date(`${state.start}T00:00`), total = t - st;
+  const pct = total > 0 ? Math.min(1, Math.max(0, (now - st) / total)) : 1;
+  c.fillStyle = "rgba(255,255,255,.7)"; roundRect(c, 84, 665, 620, 26, 13); c.fill();
+  c.fillStyle = "#d9534f"; roundRect(c, 84, 665, Math.max(26, 620 * pct), 26, 13); c.fill();
+  c.fillStyle = "#6f6a62"; c.font = `500 34px ${F}`;
+  c.fillText(`已經過 ${(pct * 100).toFixed(1)}%・已劃掉 ${crossed} 天`, 84, 745);
+  // 特效符號點綴
+  const fx = m.fx || ["✨"];
+  c.textAlign = "center";
+  for (let i = 0; i < 12; i++) {
+    c.save(); c.globalAlpha = .85;
+    const top = i % 2 === 0, x = top ? 640 + Math.random() * 400 : 520 + Math.random() * 520,
+      y = top ? 70 + Math.random() * 520 : 800 + Math.random() * 420;
+    c.translate(x, y); c.rotate((Math.random() - .5) * .8);
+    c.font = `${40 + Math.random() * 40}px ${F}`; c.fillText(i % 3 ? fx[i % fx.length] : "✨", 0, 0); c.restore();
+  }
+  c.textAlign = "left";
+  // 吉祥物
+  const img = await loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(cardMascotSvg(m, ex)));
+  const cx = 770, cy = 1010, S = 560;
+  c.fillStyle = "rgba(0,0,0,.08)"; c.beginPath();
+  c.ellipse(cx, cy + S * .43, S * .3 * (pose.lift ? .7 : 1), 18, 0, 0, 7); c.fill();
+  c.save(); c.translate(cx, cy - (pose.lift || 0)); c.rotate((pose.rot || 0) * Math.PI / 180);
+  c.scale((pose.flip ? -1 : 1) * (pose.sq ? pose.sq[0] : 1), pose.sq ? pose.sq[1] : 1);
+  c.drawImage(img, -S / 2, -S / 2, S, S); c.restore();
+  if (pose.lift) {  // 跳起來的動感線（身體和影子之間）
+    const y0 = cy - pose.lift + S * .36, y1 = cy + S * .41;
+    c.strokeStyle = "rgba(43,42,40,.3)"; c.lineWidth = 7; c.lineCap = "round";
+    [[-80, .7], [0, 1], [80, .7]].forEach(([dx, k]) => {
+      const mid = (y0 + y1) / 2, len = (y1 - y0) * .45 * k;
+      c.beginPath(); c.moveTo(cx + dx, mid - len / 2); c.lineTo(cx + dx, mid + len / 2); c.stroke(); });
+  }
+  // 對話框
+  const lines = t - now > 0
+    ? [`還有 ${left} 天！`, "一起加油 💪", "每天劃掉一格 ✕", ...(crossed ? [`已經劃掉 ${crossed} 天囉`] : []), "好期待喔～", "Fighting！", `${m.name} 陪你倒數`]
+    : ["就是今天！🎉", "我們做到了！", "耶～～～！"];
+  const say1 = lines[Math.floor(Math.random() * lines.length)];
+  c.font = `700 46px ${F}`; const tw = c.measureText(say1).width, bx = 80, by = 820, bw = Math.min(520, tw + 70), bh = 100;
+  c.fillStyle = "#fff"; roundRect(c, bx, by, bw, bh, 50); c.fill();
+  c.beginPath(); c.moveTo(bx + bw - 60, by + bh - 10); c.lineTo(bx + bw + 30, by + bh + 40); c.lineTo(bx + bw - 110, by + bh - 4); c.fill();
+  c.fillStyle = "#2b2a28"; c.fillText(say1, bx + 35, by + 66, bw - 70);
+  // 頁尾
+  c.fillStyle = "rgba(43,42,40,.55)"; c.font = `500 32px ${F}`;
+  c.fillText(`${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())}  ・  倒數月曆 with ${m.name}`, 84, 1290);
+  return cv;
+}
+let shareCanvas = null;
+async function refreshCard() {
+  $("shareImg").style.opacity = .4;
+  shareCanvas = await makeCard();
+  $("shareImg").src = shareCanvas.toDataURL("image/png");
+  $("shareImg").style.opacity = 1;
+}
+$("shareBtn").onclick = () => { $("shareModal").classList.add("open"); refreshCard(); };
+$("shareAgain").onclick = refreshCard;
+$("shareClose").onclick = () => $("shareModal").classList.remove("open");
+$("shareModal").addEventListener("click", e => { if (e.target === $("shareModal")) $("shareModal").classList.remove("open"); });
+$("shareSave").onclick = () => {
+  if (!shareCanvas) return;
+  const now = new Date(), fname = `countdown-${ymd(now)}.png`;
+  shareCanvas.toBlob(async blob => {
+    const file = new File([blob], fname, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "倒數月曆" }); return; } catch (e) { if (e.name === "AbortError") return; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }, "image/png");
+};
+
+/* ---------- 深色 / 淺色模式 ---------- */
+function applyTheme() {
+  const t = state.theme || "auto";
+  if (t === "auto") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = t;
+  document.querySelectorAll("#themeSeg button").forEach(b => {
+    b.classList.toggle("on", b.dataset.t === t); b.setAttribute("aria-pressed", b.dataset.t === t);
+  });
+}
+$("themeSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.theme = b.dataset.t; save(); applyTheme();
+  say({ auto: "跟著系統設定走～", light: "🌝 亮亮模式！", dark: "🌚 夜間模式，晚安～" }[state.theme]);
+});
+applyTheme();
 
 renderCal(); tick(); setInterval(tick, 1000);
