@@ -35,6 +35,16 @@ function tick() {
   $("barLabel").textContent = `已經過 ${pct.toFixed(1)}%・已劃掉 ${crossedCount} 天`;
 }
 
+const STICKERS = {
+  star: `<path d="M50 8 L61 37 L93 38 L68 58 L77 90 L50 72 L23 90 L32 58 L7 38 L39 37 Z" fill="#f5c52f" stroke="#e0a91f" stroke-width="4" stroke-linejoin="round"/>
+         <circle cx="40" cy="50" r="4" fill="#2b2a28"/><circle cx="60" cy="50" r="4" fill="#2b2a28"/>
+         <path d="M44 60 Q50 65 56 60" stroke="#2b2a28" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  heart: `<path d="M50 88 C20 66 6 50 6 32 C6 18 17 8 30 8 C39 8 46 13 50 20 C54 13 61 8 70 8 C83 8 94 18 94 32 C94 50 80 66 50 88 Z" fill="#f07b8a" stroke="#d95f70" stroke-width="4"/>
+          <ellipse cx="30" cy="28" rx="8" ry="5" fill="#fff" opacity=".5" transform="rotate(-30 30 28)"/>`
+};
+const stickerArt = id => STICKERS[id] || (typeof MASCOTS !== "undefined" && MASCOTS[id] ? MASCOTS[id].art : "");
+const markToSvg = mark => Array.isArray(mark) ? strokesToSvg(mark)
+  : `<svg class="stamp" viewBox="0 0 100 100" style="transform:rotate(${mark.r || 0}deg)">${stickerArt(mark.s)}</svg>`;
 const strokesToSvg = strokes =>
   `<svg viewBox="0 0 100 100" preserveAspectRatio="none">${strokes.map(s =>
     `<polyline points="${s.map(p => `${(p[0]*100).toFixed(1)},${(p[1]*100).toFixed(1)}`).join(" ")}"/>`).join("")}</svg>`;
@@ -57,7 +67,7 @@ function renderCal() {
     if (mark) cls.push("crossed");
     if (cur.getTime() === today.getTime()) cls.push("today");
     g.insertAdjacentHTML("beforeend",
-      `<div class="${cls.join(" ")}" data-key="${key}">${d}${note ? `<small>${note}</small>` : ""}${mark ? strokesToSvg(mark) : ""}</div>`);
+      `<div class="${cls.join(" ")}" data-key="${key}">${d}${note ? `<small>${note}</small>` : ""}${mark ? markToSvg(mark) : ""}</div>`);
   }
 }
 
@@ -120,11 +130,21 @@ function openPad(key) {
   const wk = "日一二三四五六"[new Date(y, m - 1, d).getDay()];
   $("padTitle").textContent = `${m} 月 ${d} 日（${wk}）`;
   $("padNum").textContent = d;
-  strokes = (state.marks[key] || []).map(s => s.slice());
-  $("btnClear").textContent = state.marks[key] ? "移除 ✕" : "清除";
+  const mk = state.marks[key];
+  strokes = Array.isArray(mk) ? mk.map(s => s.slice()) : [];
+  $("btnClear").textContent = mk ? "移除 ✕" : "清除";
+  const ids = ["star", "heart", ...Object.keys(MASCOTS)];
+  $("stickers").innerHTML = ids.map(id =>
+    `<button data-s="${id}" class="${mk && mk.s === id ? "on" : ""}" aria-label="${STICKERS[id] ? (id === "star" ? "星星" : "愛心") : MASCOTS[id].name} 貼紙">
+      <svg viewBox="0 0 100 100">${stickerArt(id)}</svg></button>`).join("");
   $("modal").classList.add("open");
   requestAnimationFrame(sizeCanvas);
 }
+$("stickers").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.marks[padKey] = { s: b.dataset.s, r: Math.round(Math.random() * 24 - 12) };
+  save(); renderCal(); tick(); closePad(); celebrate();
+});
 function closePad() { clearTimeout(autoTimer); $("modal").classList.remove("open"); current = null; }
 function finish() {
   clearTimeout(autoTimer);
@@ -148,23 +168,74 @@ function hop() {
   const m = $("mascot");
   m.classList.remove("happy"); void m.offsetWidth; m.classList.add("happy");
 }
-function snow(n = 18) {
+function snow() {
+  const m = MASCOTS[state.mascot] || {};
+  const items = m.fx || ["❄️"], dir = m.dir || "down";
+  const W = innerWidth, H = innerHeight, rnd = (a, b) => a + Math.random() * (b - a);
+  const T = (x, y, r = 0, sx = 1, sy = sx) => `translate(${x}px,${y}px) rotate(${r}deg) scale(${sx},${sy})`;
+  const n = { concert: 36, bounce: 28, leaf: 34 }[dir] || 40;
+  // 音樂表演：從吉祥物身上跟著節拍湧出
+  const mr = $("mascot").getBoundingClientRect(), vis = mr.top > 0 && mr.bottom < H;
+  const ox = vis ? mr.left + mr.width / 2 - 14 : W / 2 - 14, oy = vis ? mr.top + mr.height * .45 : H - 30;
+  if (dir === "concert") {
+    const beat = 420;
+    $("mascot").animate([{ transform: "scale(1)" }, { transform: "scale(1.08)" }, { transform: "scale(1)" }],
+      { duration: beat, iterations: 6, easing: "ease-out" });
+  }
   for (let i = 0; i < n; i++) {
-    const s = document.createElement("div");
-    s.className = "snowfx"; s.textContent = "❄";
-    s.style.left = Math.random() * 100 + "vw";
-    s.style.fontSize = 10 + Math.random() * 14 + "px";
-    s.style.animationDuration = 2 + Math.random() * 2 + "s";
-    s.style.animationDelay = Math.random() * .6 + "s";
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 5000);
+    const el = document.createElement("div");
+    el.className = "snowfx";
+    el.textContent = items[i % items.length];
+    el.style.left = "0px"; el.style.top = "0px";
+    el.style.fontSize = rnd(18, 32) + "px";
+    let kf, opt;
+    if (dir === "concert") {
+      const ang = (rnd(-70, 70) + (oy < H * .4 ? 215 : 0)) * Math.PI / 180, dist = rnd(H * .45, H * .8), steps = 12;
+      kf = [];
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps;
+        const x = ox + Math.sin(ang) * dist * t + Math.sin(t * Math.PI * 4 + i) * 18;
+        const y = oy - Math.cos(ang) * dist * t;
+        const pulse = s % 2 ? 1.35 : 1;
+        kf.push({ transform: T(x, y, Math.sin(t * Math.PI * 4) * 20, pulse * (.4 + t * .8 > 1 ? 1 : .4 + t * .8)),
+                  opacity: t > .8 ? (1 - t) * 5 : 1 });
+      }
+      opt = { duration: 420 * steps / 2, delay: i * 90, easing: "linear" };
+    } else if (dir === "bounce") {
+      // 打鼓：落下後咚咚彈跳
+      const x = rnd(10, W - 50), floor = H - 50, h1 = rnd(H * .18, H * .3), h2 = h1 * .4, r = rnd(-30, 30);
+      kf = [
+        { offset: 0,   transform: T(x, -50, 0), easing: "ease-in" },
+        { offset: .4,  transform: T(x, floor, r, 1.25, .7), easing: "ease-out" },
+        { offset: .58, transform: T(x, floor - h1, r * 1.5), easing: "ease-in" },
+        { offset: .74, transform: T(x, floor, r * 2, 1.2, .78), easing: "ease-out" },
+        { offset: .84, transform: T(x, floor - h2, r * 2.3), easing: "ease-in" },
+        { offset: .93, transform: T(x, floor, r * 2.5, 1.1, .88), opacity: 1 },
+        { offset: 1,   transform: T(x, floor, r * 2.5), opacity: 0 }];
+      opt = { duration: rnd(2000, 2600), delay: i * 90 };
+    } else if (dir === "leaf") {
+      // 落葉：像葉子一樣左右擺盪、傾斜飄落
+      const x0 = rnd(0, W - 30), amp = rnd(40, 90), swings = rnd(2, 3.5), steps = 16;
+      kf = [];
+      for (let s = 0; s <= steps; s++) {
+        const t = s / steps, ph = t * Math.PI * swings;
+        kf.push({ transform: T(x0 + Math.sin(ph) * amp, -50 + t * (H + 100), Math.cos(ph) * 40) });
+      }
+      opt = { duration: rnd(4000, 5500), delay: rnd(0, 1800), easing: "ease-in-out" };
+    } else {
+      const x = rnd(0, W), spin = rnd(-360, 360);
+      kf = [{ transform: T(x, -40, 0) }, { transform: T(x + rnd(-40, 40), H + 40, spin) }];
+      opt = { duration: rnd(2200, 4000), delay: rnd(0, 1200), easing: "linear" };
+    }
+    document.body.appendChild(el);
+    el.animate(kf, { ...opt, fill: "both" }).onfinish = () => el.remove();
   }
 }
 function celebrate() {
   hop(); snow();
   const n = daysLeft();
   const lines = n > 0
-    ? [`又劃掉一天！ ✨`, `好棒！`, `打叉成功～加油！`]
+    ? [`又劃掉一天！剩 ${n} 天 ✨`, `好棒！再 ${n} 天就到了`, `打叉成功～加油！`]
     : ["就是今天啦！🎉"];
   say(lines[Math.floor(Math.random() * lines.length)]);
 }
@@ -224,7 +295,7 @@ renderName();
 
 /* ---------- 吉祥物切換 ---------- */
 const MASCOTS = {
-  snow: { name: "Snow", color: "#5b8fd6", art: `
+  snow: { name: "Snow", fx: ["❄️"], dir: "down", color: "#5b8fd6", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 手套 -->
           <circle cx="17" cy="64" r="7" fill="#5b8fd6"/>
@@ -246,7 +317,7 @@ const MASCOTS = {
           <path d="M24 80 Q50 90 76 80 L74 86 Q50 96 26 86 Z" fill="#5b8fd6"/>
           <rect x="62" y="84" width="9" height="14" rx="3" fill="#5b8fd6" transform="rotate(-10 66 90)"/>
         ` },
-  pip: { name: "Bean", color: "#7cae5a", art: `
+  pip: { name: "Bean", fx: ["🎶","🎸","🎹"], dir: "concert", color: "#7cae5a", art: `
           <ellipse cx="50" cy="95" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <path d="M38 88 L32 95 L44 95 Z" fill="#f08a3c"/>
@@ -259,14 +330,12 @@ const MASCOTS = {
           <circle cx="50" cy="77" r="2" fill="#f3f0ea"/>
           <!-- 小翅膀 -->
           <ellipse cx="27" cy="70" rx="6" ry="9" fill="#eef1f4" transform="rotate(20 27 70)"/>
-          <!-- 澆水壺 -->
-          <g transform="translate(66 62)">
-            <rect x="0" y="4" width="18" height="16" rx="4" fill="#5bb5c9"/>
-            <path d="M18 8 L28 0" stroke="#5bb5c9" stroke-width="4" stroke-linecap="round"/>
-            <ellipse cx="29" cy="-1" rx="3" ry="2" fill="#4a9bb0"/>
-            <path d="M3 4 Q9 -6 15 4" stroke="#4a9bb0" stroke-width="2.5" fill="none"/>
-            <circle cx="33" cy="4" r="1.3" fill="#8fd3e6"/>
-            <circle cx="35" cy="9" r="1.3" fill="#8fd3e6"/>
+          <!-- 麥克風 -->
+          <g transform="rotate(25 70 64)">
+            <rect x="66.5" y="60" width="7" height="22" rx="3" fill="#3b3f47"/>
+            <rect x="66" y="60" width="8" height="3" fill="#5bb5c9"/>
+            <circle cx="70" cy="52" r="9" fill="#c9ced6" stroke="#9aa1ab" stroke-width="1.5"/>
+            <path d="M62 49 L78 49 M61.5 53 L78.5 53 M63 57 L77 57 M66 44 L66 60 M70 43 L70 61 M74 44 L74 60" stroke="#9aa1ab" stroke-width="1"/>
           </g>
           <ellipse cx="68" cy="72" rx="5" ry="7" fill="#eef1f4"/>
           <!-- 頭 -->
@@ -285,7 +354,7 @@ const MASCOTS = {
           <circle cx="45" cy="23" r="3.5" fill="#fff"/>
           <path d="M43.5 23 L46.5 23 M45 21.5 L45 24.5" stroke="#3f78c8" stroke-width="1.2"/>
         ` },
-  bobo: { name: "Teddy", color: "#2f7a5f", art: `
+  bobo: { name: "Teddy", fx: ["🥁","🍯"], dir: "bounce", color: "#2f7a5f", art: `
           <ellipse cx="50" cy="95" rx="24" ry="4" fill="#000" opacity=".08"/>
           <!-- 腳 -->
           <rect x="37" y="84" width="10" height="11" rx="4" fill="#3b2a20"/>
@@ -320,7 +389,7 @@ const MASCOTS = {
           <path d="M34 28 Q50 34 66 28 L66 30 Q50 37 34 30 Z" fill="#1f4f3e"/>
           <path d="M50 14 l1.8 3.7 4 .6 -2.9 2.8 .7 4 -3.6-1.9 -3.6 1.9 .7-4 -2.9-2.8 4-.6 Z" fill="#e8b93c"/>
         ` },
-  momo: { name: "Coffee", color: "#d4935a", art: `
+  momo: { name: "Coffee", fx: ["🍃","☕"], dir: "leaf", color: "#d4935a", art: `
           <ellipse cx="50" cy="94" rx="26" ry="4" fill="#000" opacity=".08"/>
           <!-- 尾巴 -->
           <path d="M78 78 Q96 70 90 52" stroke="#e2a768" stroke-width="7" fill="none" stroke-linecap="round"/>
